@@ -1,0 +1,45 @@
+[server]
+name = "mcp-chassis-server"
+version = "0.1.0"
+transport = "stdio"
+log_level = "INFO"
+
+[security]
+profile = "strict"
+
+[security.rate_limits]
+enabled = true
+global_rpm = 60
+per_tool_rpm = 30
+burst_size = 10
+
+[security.io_limits]
+max_request_size = 1048576
+max_response_size = 5242880
+
+[security.input_validation]
+enabled = true
+max_string_length = 10000
+max_array_length = 100
+max_object_depth = 10
+
+[security.input_sanitization]
+enabled = true
+level = "strict"
+
+[security.auth]
+enabled = false
+provider = "none"
+
+[extensions]
+auto_discover = true
+# init_module = "mcp_chassis.extensions.my_init"  # Optional init hook
+
+[diagnostics]
+health_check_enabled = true
+include_config_summary = false
+
+# Fork-specific configuration. The template does not validate this section —
+# its contents are defined by your fork and accessed via server._config.app.
+# [app]
+# my_setting = "value"
