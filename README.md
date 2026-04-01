@@ -1,6 +1,6 @@
-# MCP Chassis Server
+# MCP Server Chassis
 
-An extensible [Model Context Protocol](https://modelcontextprotocol.io/) server chassis in Python. Fork it, add your extensions, and you have a production-ready MCP server with built-in security middleware, extension auto-discovery, and configuration management.
+An extensible [Model Context Protocol](https://modelcontextprotocol.io/) server chassis in Python. Fork it, add your extensions, and you have an MCP server with built-in security middleware, extension auto-discovery, and configuration management.
 
 ## Features
 
@@ -19,6 +19,8 @@ python -m mcp_chassis
 See [docs/FORK_GUIDE.md](docs/FORK_GUIDE.md) for full setup, extension authoring, and configuration docs.
 
 ## Security Middleware
+
+**IMPORTANT**: These protections are a basic attempt to provide some security by default. If you decide to use this server in a production setting, we recommend you still perform security testing and modify the code of this project to implement security mitigations as appropriate for your threat environment and risk tolerance.
 
 The middleware pipeline processes every tool request in this order:
 
