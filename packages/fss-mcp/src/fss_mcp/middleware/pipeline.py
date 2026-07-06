@@ -13,7 +13,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
-from fss_mcp.config import SecurityConfig
+from fss_core.auth import AuthProvider, create_auth_provider
 from fss_core.errors import (
     AuthError,
     FSSCoreError,
@@ -22,7 +22,7 @@ from fss_core.errors import (
     SanitizationError,
     ValidationError,
 )
-from fss_core.auth import AuthProvider, create_auth_provider
+from fss_mcp.config import SecurityConfig
 from fss_mcp.security.io_limits import check_request_size, check_response_size
 from fss_mcp.security.rate_limiter import RateLimiter
 from fss_mcp.security.sanitization import sanitize_input

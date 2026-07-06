@@ -2,8 +2,8 @@
 
 import pytest
 
-from fss_mcp.config import RateLimitConfig
 from fss_core.errors import RateLimitError
+from fss_mcp.config import RateLimitConfig
 from fss_mcp.security.rate_limiter import (
     RateLimiter,
     check_rate_limit,

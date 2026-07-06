@@ -7,6 +7,9 @@ from typing import Any
 
 import pytest
 
+# Re-use the shared test config builder from conftest (imported via pytest's
+# conftest mechanism — the path must be relative to the tests root).
+from conftest import make_test_config
 from fss_mcp.config import (
     AuthConfig,
     DiagnosticSettings,
@@ -21,10 +24,6 @@ from fss_mcp.config import (
 )
 from fss_mcp.context import HandlerContext
 from fss_mcp.server import ChassisServer
-
-# Re-use the shared test config builder from conftest (imported via pytest's
-# conftest mechanism — the path must be relative to the tests root).
-from conftest import make_test_config
 
 
 @pytest.fixture()

@@ -10,8 +10,8 @@ import logging
 import time
 from dataclasses import dataclass
 
-from fss_mcp.config import RateLimitConfig
 from fss_core.errors import RateLimitError
+from fss_mcp.config import RateLimitConfig
 
 logger = logging.getLogger(__name__)
 

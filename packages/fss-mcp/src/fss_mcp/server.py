@@ -16,8 +16,6 @@ from mcp import types
 from mcp.server.lowlevel.server import Server as SDKServer
 from mcp.server.lowlevel.server import request_ctx
 
-from fss_mcp.config import ServerConfig
-from fss_mcp.context import HandlerContext
 from fss_core.errors import (
     FSS_AUTH_DENIED,
     FSS_AUTH_REQUIRED,
@@ -27,11 +25,10 @@ from fss_core.errors import (
     FSS_PARAM_INVALID,
     FSS_RATE_LIMITED,
     FSS_TOOL_UNAVAILABLE,
-    FSSCoreError,
     ExtensionError,
+    FSSCoreError,
     FSSError,
 )
-from fss_mcp.middleware.pipeline import MiddlewarePipeline
 from fss_core.fss_context import (
     fss_analyst_identity,
     fss_client_identity,
@@ -49,6 +46,9 @@ from fss_core.fss_context import (
 )
 from fss_core.integrity import compute_json_cai
 from fss_core.provenance import build_provenance_record
+from fss_mcp.config import ServerConfig
+from fss_mcp.context import HandlerContext
+from fss_mcp.middleware.pipeline import MiddlewarePipeline
 
 if TYPE_CHECKING:
     from fss_mcp.transport.base import TransportBase

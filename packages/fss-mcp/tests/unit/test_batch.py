@@ -7,8 +7,8 @@ from typing import Any
 
 import pytest
 
-from fss_mcp.server import ChassisServer
 from conftest import make_test_config
+from fss_mcp.server import ChassisServer
 
 
 class FakeSource:

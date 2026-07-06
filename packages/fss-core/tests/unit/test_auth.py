@@ -5,7 +5,6 @@ import json
 
 import pytest
 
-from fss_core.errors import AuthError
 from fss_core.auth import (
     AuthIdentity,
     AuthProvider,
@@ -15,6 +14,7 @@ from fss_core.auth import (
     check_auth,
     create_auth_provider,
 )
+from fss_core.errors import AuthError
 
 
 class TestAuthIdentity:

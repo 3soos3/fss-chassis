@@ -1,7 +1,6 @@
 """Unit tests for fss_mcp.extensions module."""
 
 import sys
-import types
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -40,7 +39,7 @@ class TestScanDirectory:
 
         server = MagicMock()
         _scan_directory(tmp_path, "fake_prefix", server)
-        server.called  # attribute was set by register()
+        assert server.called is True
 
     def test_skips_init_py(self, tmp_path: Path) -> None:
         (tmp_path / "__init__.py").write_text("# package")
@@ -76,7 +75,9 @@ class TestDiscoverExtensionsExtraPackages:
 
         assert server.tool_a_registered is True
 
-    def test_missing_extra_package_logs_warning_no_crash(self, caplog: pytest.LogCaptureFixture) -> None:
+    def test_missing_extra_package_logs_warning_no_crash(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
         import logging
 
         server = MagicMock()

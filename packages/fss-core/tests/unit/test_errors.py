@@ -2,8 +2,8 @@
 
 from fss_core.errors import (
     AuthError,
-    FSSCoreError,
     ExtensionError,
+    FSSCoreError,
     IOLimitError,
     RateLimitError,
     SanitizationError,
