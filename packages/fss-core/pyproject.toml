@@ -1,0 +1,16 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fss-core"
+version = "0.1.0"
+description = "FSS protocol primitives: provenance, integrity, auth, FIT"
+requires-python = ">=3.11"
+dependencies = ["jcs>=0.2.0"]
+
+[project.optional-dependencies]
+auth = ["PyJWT>=2.8.0", "cryptography>=42.0.0", "httpx>=0.25,<1.0"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fss_core"]

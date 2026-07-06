@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fss-mcp"
+version = "1.2.0"
+description = "FSS-compliant MCP server chassis"
+requires-python = ">=3.11"
+dependencies = [
+    "fss-core>=0.1.0",
+    "mcp>=1.2.0,<2.0",
+]
+
+[project.optional-dependencies]
+http = ["starlette>=0.37.0", "uvicorn[standard]>=0.27.0", "httpx>=0.25,<1.0"]
+auth = ["PyJWT>=2.8.0", "cryptography>=42.0.0", "httpx>=0.25,<1.0"]
+otel = ["opentelemetry-api>=1.20.0", "opentelemetry-sdk>=1.20.0",
+        "opentelemetry-exporter-otlp-proto-grpc>=1.20.0"]
+
+[project.scripts]
+fss-mcp = "fss_mcp.__main__:main"
+
+[tool.uv.sources]
+fss-core = { workspace = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fss_mcp"]
