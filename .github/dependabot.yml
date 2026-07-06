@@ -1,0 +1,39 @@
+version: 2
+updates:
+  # Workspace root (dev tooling)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    groups:
+      dev-tools:
+        patterns: ["pytest*", "ruff", "mypy", "pip-audit"]
+
+  # fss-core
+  - package-ecosystem: "pip"
+    directory: "/packages/fss-core"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+    open-pull-requests-limit: 5
+
+  # fss-mcp
+  - package-ecosystem: "pip"
+    directory: "/packages/fss-mcp"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+    open-pull-requests-limit: 5
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    groups:
+      actions:
+        patterns: ["*"]

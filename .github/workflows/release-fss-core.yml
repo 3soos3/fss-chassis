@@ -1,0 +1,66 @@
+name: Release - fss-core
+
+# Publishes fss-core to PyPI on tag fss-core-v*.*.*
+# Uses OIDC trusted publishing — no stored API token needed.
+
+on:
+  push:
+    tags:
+      - 'fss-core-v*.*.*'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build fss-core
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@f0ec1fc3b38f5e7cd731bb6ce540c5af426746bb # v6.1.0
+
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#fss-core-v}" >> "$GITHUB_OUTPUT"
+
+      - name: Build fss-core wheel and sdist
+        run: uv build packages/fss-core --out-dir dist/
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@e8998f949152b193a99a28c4f5f36e51d9d2df2c # v2.4.0
+        with:
+          subject-path: dist/*
+
+      - name: Upload dist artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fss-core-dist
+          path: dist/
+          retention-days: 7
+
+  publish:
+    name: Publish fss-core to PyPI
+    runs-on: ubuntu-latest
+    needs: build
+    environment: pypi-release
+    permissions:
+      id-token: write
+    steps:
+      - name: Download dist
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: fss-core-dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfb0a9aa2cf1b09b4 # v1.12.4
+        with:
+          packages-dir: dist/

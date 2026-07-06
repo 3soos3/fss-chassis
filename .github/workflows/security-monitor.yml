@@ -1,0 +1,106 @@
+name: Security Monitor - Weekly pip-audit
+
+on:
+  schedule:
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  pip-audit:
+    name: pip-audit (dependency CVEs)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@f0ec1fc3b38f5e7cd731bb6ce540c5af426746bb # v6.1.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run pip-audit
+        id: audit
+        run: |
+          set +e
+          uv run pip-audit packages/fss-core packages/fss-mcp --format json --output pip-audit.json
+          AUDIT_EXIT=$?
+          uv run pip-audit packages/fss-core packages/fss-mcp --format columns || true
+          echo "exit_code=${AUDIT_EXIT}" >> $GITHUB_OUTPUT
+          set -e
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: pip-audit-report
+          path: pip-audit.json
+          retention-days: 90
+
+      - name: Open issue on failure
+        if: steps.audit.outputs.exit_code != '0'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            let vulnSummary = 'See attached pip-audit report for details.';
+            let vulnCount = 0;
+            try {
+              const report = JSON.parse(fs.readFileSync('pip-audit.json', 'utf8'));
+              const deps = report.dependencies || [];
+              const vulns = deps.flatMap(d => (d.vulns || []).map(v => ({
+                pkg: d.name, version: d.version, id: v.id,
+                fix: v.fix_versions?.join(', ') || 'none',
+                aliases: (v.aliases || []).join(', '),
+              })));
+              vulnCount = vulns.length;
+              if (vulnCount > 0) {
+                const lines = vulns.slice(0, 15).map(v =>
+                  `- **${v.id}** in \`${v.pkg}@${v.version}\` — fix: \`${v.fix}\`${v.aliases ? ` (${v.aliases})` : ''}`
+                );
+                vulnSummary = lines.join('\n');
+                if (vulnCount > 15) vulnSummary += `\n\n_...and ${vulnCount - 15} more._`;
+              }
+            } catch (e) { core.warning(`Could not parse pip-audit.json: ${e.message}`); }
+
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: ['security', 'vulnerability', 'pip-audit'],
+            });
+            const existing = issues.find(i => i.title.includes('pip-audit: vulnerabilities detected'));
+            const body = [
+              '## pip-audit: vulnerabilities detected in fss-chassis dependencies',
+              '', `**Detected:** ${new Date().toISOString()}`,
+              `**Packages:** fss-core, fss-mcp`, `**Count:** ${vulnCount} vulnerabilities`,
+              '', '### Findings', vulnSummary, '', '### Action Required',
+              '1. Review findings and the pip-audit artifact.',
+              '2. Update affected dependencies in the relevant `pyproject.toml`.',
+              '3. Re-run the Security Monitor workflow to confirm resolution.',
+              '4. Close this issue once the workflow passes cleanly.',
+            ].join('\n');
+
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: existing.number,
+                body: `Updated scan (${new Date().toISOString()}): ${vulnCount} vulnerabilities still present.\n\n${vulnSummary}`,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title: `pip-audit: vulnerabilities detected in fss-chassis dependencies (${new Date().toISOString().split('T')[0]})`,
+                body, labels: ['security', 'vulnerability', 'pip-audit'],
+              });
+            }
