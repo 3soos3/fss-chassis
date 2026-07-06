@@ -102,7 +102,7 @@ def build_provenance_record(
         "timestamp_utc": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z",
         "tool_name": tool_name,
         "tool_version": tool_version,
-        "kb_version_id": kb_version_id,
+        "kb_version_id": kb_version_id if kb_version_id is not None else "none",
         "kb_version": kb_version,
         "parameters_cai": fss_parameters_cai.get(),
         "result_cai": fss_result_cai.get(),

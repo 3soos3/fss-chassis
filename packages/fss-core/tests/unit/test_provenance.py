@@ -143,7 +143,7 @@ class TestBuildProvenanceRecord:
 
     def test_kb_version_id_none_when_not_provided(self) -> None:
         record = build_provenance_record("tool", "1.0.0")
-        assert record["kb_version_id"] is None
+        assert record["kb_version_id"] == "none"
         assert record["kb_version"] is None
 
     def test_server_version_present(self) -> None:
