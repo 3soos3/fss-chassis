@@ -34,11 +34,15 @@ class TestScanDirectory:
     """Tests for _scan_directory."""
 
     def test_loads_and_registers_module(self, tmp_path: Path) -> None:
-        ext_file = tmp_path / "my_tool.py"
-        ext_file.write_text("def register(server): server.called = True\n")
+        # Create a real package so importlib.import_module("fake_prefix.my_tool") resolves.
+        pkg_dir = tmp_path / "fake_prefix"
+        pkg_dir.mkdir()
+        (pkg_dir / "__init__.py").write_text("")
+        (pkg_dir / "my_tool.py").write_text("def register(server): server.called = True\n")
 
         server = MagicMock()
-        _scan_directory(tmp_path, "fake_prefix", server)
+        with patch.object(sys, "path", [str(tmp_path)] + sys.path):
+            _scan_directory(pkg_dir, "fake_prefix", server)
         assert server.called is True
 
     def test_skips_init_py(self, tmp_path: Path) -> None:

@@ -52,16 +52,16 @@ The template wraps the MCP Python SDK behind a custom framework layer that provi
 
 ## Component Design
 
-### 1. Entry Point — `src/mcp_chassis/__main__.py`
+### 1. Entry Point — `packages/fss-mcp/src/fss_mcp/__main__.py`
 
 **Purpose:** CLI entry point. Parses arguments, loads config, creates and runs the server.
 
 ```python
-# Allows: python -m mcp_chassis
-# Allows: python -m mcp_chassis --config /path/to/config.toml
-# Allows: python -m mcp_chassis --env-file /path/to/.env
-# Allows: python -m mcp_chassis --version
-# Allows: MCP_CHASSIS_CONFIG=/path/to/config.toml python -m mcp_chassis
+# Allows: python -m fss_mcp
+# Allows: python -m fss_mcp --config /path/to/config.toml
+# Allows: python -m fss_mcp --env-file /path/to/.env
+# Allows: python -m fss_mcp --version
+# Allows: MCP_CHASSIS_CONFIG=/path/to/config.toml python -m fss_mcp
 ```
 
 **Responsibilities:**
@@ -73,7 +73,7 @@ The template wraps the MCP Python SDK behind a custom framework layer that provi
 - Run the server (blocking)
 - Handle SIGTERM/SIGINT for graceful shutdown
 
-### 2. Server Core — `src/mcp_chassis/server.py`
+### 2. Server Core — `packages/fss-mcp/src/fss_mcp/server.py`
 
 **Purpose:** The central orchestrator. Creates the MCP SDK `Server`, wires up middleware, discovers extensions, and runs the event loop.
 
@@ -132,7 +132,7 @@ class ChassisServer:
 
 **Design Decision:** We use the SDK's low-level `Server` class and register our own `on_list_tools`, `on_call_tool`, etc. handlers that delegate through the middleware pipeline to extension-registered handlers. This gives us full control over the request lifecycle.
 
-### 3. Configuration — `src/mcp_chassis/config.py`
+### 3. Configuration — `packages/fss-mcp/src/fss_mcp/config.py`
 
 **Purpose:** Load, validate, and provide typed access to all configuration.
 
@@ -141,7 +141,7 @@ class ChassisServer:
 **Config Structure:**
 ```toml
 [server]
-name = "mcp-chassis-server"
+name = "fss-mcp-server"
 version = "0.1.0"
 transport = "stdio"         # "stdio" | "sse" | "streamable-http" (only stdio implemented)
 log_level = "INFO"          # DEBUG | INFO | WARNING | ERROR
@@ -177,7 +177,7 @@ provider = "none"           # "none" | "token" (token requires HTTP transport)
 
 [extensions]
 auto_discover = true
-# init_module = "mcp_chassis.extensions.my_init"  # Optional init hook
+# init_module = "fss_mcp.extensions.my_init"  # Optional init hook
 
 [diagnostics]
 health_check_enabled = true
@@ -214,7 +214,7 @@ class ServerConfig:
 - `MCP_RATE_LIMIT_ENABLED` — toggle rate limiting
 - All env vars prefixed with `MCP_` and follow the TOML path in UPPER_SNAKE_CASE.
 
-### 4. Security Module — `src/mcp_chassis/security/`
+### 4. Security Module — `packages/fss-mcp/src/fss_mcp/security/`
 
 #### 4a. Security Profiles — `profiles.py`
 
@@ -353,7 +353,7 @@ class TokenAuthProvider(AuthProvider):
 - The auth provider checks the caller's scopes against required scopes.
 - In stdio/no-auth mode, all scopes are granted.
 
-### 5. Middleware Pipeline — `src/mcp_chassis/middleware/pipeline.py`
+### 5. Middleware Pipeline — `packages/fss-mcp/src/fss_mcp/middleware/pipeline.py`
 
 **Purpose:** Chain security checks in a defined order.
 
@@ -377,11 +377,11 @@ class MiddlewarePipeline:
 **Error Handling:**
 Each middleware step returns either a pass-through or an error. Errors are converted to MCP `CallToolResult` with `is_error=True` and a structured error message including a correlation ID.
 
-### 6. Extension System — `src/mcp_chassis/extensions/`
+### 6. Extension System — `packages/fss-mcp/src/fss_mcp/extensions/`
 
 **Purpose:** Allow forks to add tools, resources, and prompts by dropping modules into designated directories.
 
-#### Auto-Discovery — `src/mcp_chassis/extensions/__init__.py`
+#### Auto-Discovery — `packages/fss-mcp/src/fss_mcp/extensions/__init__.py`
 
 ```python
 def discover_extensions(server: "ChassisServer", base_package: str) -> None:
@@ -396,7 +396,7 @@ def discover_extensions(server: "ChassisServer", base_package: str) -> None:
 
 **Why `register()` function instead of decorators?** Decorators require the server instance at import time, creating circular dependencies. A `register(server)` function is called after the server is created, keeping modules clean and testable.
 
-#### Example Tool — `src/mcp_chassis/extensions/tools/example_tool.py`
+#### Example Tool — `packages/fss-mcp/src/fss_mcp/extensions/tools/example_tool.py`
 
 ```python
 """Example tool demonstrating the extension pattern."""
@@ -419,7 +419,7 @@ async def _handle_echo(arguments: dict, context: "HandlerContext") -> str:
     return arguments["message"]
 ```
 
-#### Example Resource — `src/mcp_chassis/extensions/resources/example_resource.py`
+#### Example Resource — `packages/fss-mcp/src/fss_mcp/extensions/resources/example_resource.py`
 
 ```python
 """Example resource demonstrating the resource extension pattern."""
@@ -435,10 +435,10 @@ def register(server: "ChassisServer") -> None:
 
 async def _handle_info(uri: str, context: "HandlerContext") -> str:
     import json
-    return json.dumps({"chassis": "mcp-chassis-server", "status": "running"})
+    return json.dumps({"chassis": "fss-mcp-server", "status": "running"})
 ```
 
-#### Example Prompt — `src/mcp_chassis/extensions/prompts/example_prompt.py`
+#### Example Prompt — `packages/fss-mcp/src/fss_mcp/extensions/prompts/example_prompt.py`
 
 ```python
 """Example prompt demonstrating the prompt extension pattern."""
@@ -458,7 +458,7 @@ async def _handle_greeting(arguments: dict, context: "HandlerContext") -> list:
     return [{"role": "user", "content": f"Please greet {name} warmly."}]
 ```
 
-### 7. Diagnostics — `src/mcp_chassis/diagnostics/health.py`
+### 7. Diagnostics — `packages/fss-mcp/src/fss_mcp/diagnostics/health.py`
 
 **Purpose:** Built-in health check tool registered by default.
 
@@ -467,7 +467,7 @@ async def _handle_greeting(arguments: dict, context: "HandlerContext") -> list:
 **Returns:**
 ```json
 {
-    "server_name": "mcp-chassis-server",
+    "server_name": "fss-mcp-server",
     "server_version": "0.1.0",
     "chassis_version": "1.0.0",
     "python_version": "3.11.x",
@@ -485,26 +485,26 @@ async def _handle_greeting(arguments: dict, context: "HandlerContext") -> list:
 }
 ```
 
-### 8. Error Handling — `src/mcp_chassis/errors.py`
+### 8. Error Handling — `packages/fss-mcp/src/fss_mcp/errors.py`
 
 **Purpose:** Unified error types with correlation IDs.
 
 ```python
 import uuid
 
-class ChassisError(Exception):
+class FSSCoreError(Exception):
     """Base error with correlation ID."""
     def __init__(self, message: str, code: str):
         self.correlation_id = uuid.uuid4().hex[:12]
         self.code = code
         super().__init__(message)
 
-class ValidationError(ChassisError): ...
-class SanitizationError(ChassisError): ...
-class RateLimitError(ChassisError): ...
-class IOLimitError(ChassisError): ...
-class AuthError(ChassisError): ...
-class ExtensionError(ChassisError): ...
+class ValidationError(FSSCoreError): ...
+class SanitizationError(FSSCoreError): ...
+class RateLimitError(FSSCoreError): ...
+class IOLimitError(FSSCoreError): ...
+class AuthError(FSSCoreError): ...
+class ExtensionError(FSSCoreError): ...
 ```
 
 Notable error codes:
@@ -512,7 +512,7 @@ Notable error codes:
 
 All errors are caught in the server core and converted to structured error responses with the correlation ID included for log tracing. Tools return `CallToolResult(isError=True)`. Resources and prompts raise `McpError`.
 
-### 9. Logging — `src/mcp_chassis/logging_config.py`
+### 9. Logging — `packages/fss-mcp/src/fss_mcp/logging_config.py`
 
 **Purpose:** Configure Python's `logging` module for structured JSON output to stderr.
 
@@ -529,7 +529,7 @@ def configure_logging(level: str) -> None:
 
 **Key constraint:** All logging goes to stderr. stdout is reserved exclusively for MCP JSON-RPC messages.
 
-### 10. Transport Abstraction — `src/mcp_chassis/transport/`
+### 10. Transport Abstraction — `packages/fss-mcp/src/fss_mcp/transport/`
 
 #### Base Interface — `base.py`
 
@@ -576,7 +576,7 @@ class StreamableHTTPTransport(TransportBase):
     # Same pattern
 ```
 
-### 11. Handler Context — `src/mcp_chassis/context.py`
+### 11. Handler Context — `packages/fss-mcp/src/fss_mcp/context.py`
 
 **Purpose:** Provide a clean context object to extension handlers, abstracting away SDK internals.
 
@@ -703,7 +703,7 @@ Client → stdin → JSON-RPC parse
 ## File Manifest
 
 ```
-src/mcp_chassis/
+packages/fss-mcp/src/fss_mcp/
 ├── __init__.py                          # Package init, version
 ├── __main__.py                          # CLI entry point
 ├── server.py                            # ChassisServer core

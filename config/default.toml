@@ -33,7 +33,8 @@ provider = "none"
 
 [extensions]
 auto_discover = true
-# init_module = "mcp_chassis.extensions.my_init"  # Optional init hook
+# init_module = "your_package.init"       # Optional: called before extension discovery
+# discovery_packages = ["your_package.tools"]  # Optional: extra packages to scan for extensions
 
 [diagnostics]
 health_check_enabled = true

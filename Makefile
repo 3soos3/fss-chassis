@@ -1,22 +1,25 @@
-.PHONY: install test test-unit test-integration lint typecheck format
+.PHONY: install test test-core test-mcp lint typecheck format audit
 
 install:
-	pip install -e ".[dev]"
+	uv sync --extra otel
 
-test: test-unit test-integration
+test: test-core test-mcp
 
-test-unit:
-	pytest tests/unit/ -v
+test-core:
+	uv run pytest packages/fss-core/tests -v
 
-test-integration:
-	pytest tests/integration/ -v
+test-mcp:
+	uv run pytest packages/fss-mcp/tests -v
 
 lint:
-	ruff check src/ tests/
+	uv run ruff check .
 
 typecheck:
-	mypy src/mcp_chassis/
+	uv run mypy packages/
 
 format:
-	ruff format src/ tests/
-	ruff check --fix src/ tests/
+	uv run ruff format .
+	uv run ruff check --fix .
+
+audit:
+	uv run pip-audit packages/fss-core packages/fss-mcp

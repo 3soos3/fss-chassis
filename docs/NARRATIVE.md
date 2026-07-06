@@ -43,7 +43,7 @@ Each layer has a specific job, and none of them know the details of the layers a
 
 ### The Entry Point
 
-When you run `python -m mcp_chassis`, execution begins in the CLI module (`__main__.py`). This module does five things in order:
+When you run `python -m fss_mcp`, execution begins in the CLI module (`__main__.py`). This module does five things in order:
 
 1. **Parse command-line arguments** — the user can specify a config file path (`--config`), a log level (`--log-level`), and an environment file (`--env-file`).
 2. **Load environment file** — if `--env-file` was provided, the server reads `KEY=VALUE` pairs from the file and adds them to the process environment. Variables already set in the environment are not overwritten, so system-level settings take precedence. This is how forks supply secrets (API keys, database credentials) without hardcoding them in config files.
@@ -214,7 +214,7 @@ If a fork needs shared state that multiple extensions will access — a database
 
 ```toml
 [extensions]
-init_module = "mcp_chassis.extensions.my_init"
+init_module = "fss_mcp.extensions.my_init"
 ```
 
 The init hook runs after the middleware pipeline is set up but before extensions are discovered. This means extensions can rely on the shared state being available when their `register()` function is called. If the init hook fails, the error is logged but the server continues — extensions that need the shared state will simply skip their registration (they check for it and return early if it is not present).
@@ -257,7 +257,7 @@ The context deliberately hides the MCP SDK's internal objects. Extensions never 
 
 ### Error Types
 
-The template defines a hierarchy of error types, all inheriting from `ChassisError`:
+The template defines a hierarchy of error types, all inheriting from `FSSCoreError`:
 
 - `ValidationError` — input does not match the expected schema
 - `SanitizationError` — input sanitization encountered an unrecoverable issue (like a key collision)

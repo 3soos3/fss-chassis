@@ -46,11 +46,11 @@ Each item includes its resolution status for this fork.
 
 **Fork workaround:** `sys.exit(1)` raises `SystemExit` (a `BaseException`), which bypasses the chassis's `except Exception` handler. See `solveit_init.py` for the implementation.
 
-### 5. Server name defaults to `"mcp-chassis-server"`
+### 5. Server name defaults to `"fss-mcp-server"`
 
 **Status:** Resolved in this fork (renamed to `"solveit-mcp"`).
 
-**Problem:** The default config ships with `name = "mcp-chassis-server"`. Forks that forget to change this have logs, health checks, and MCP server info all identifying as the chassis template rather than their actual project.
+**Problem:** The default config ships with `name = "fss-mcp-server"`. Forks that forget to change this have logs, health checks, and MCP server info all identifying as the chassis template rather than their actual project.
 
 **Recommendation:** Use a placeholder name like `"my-mcp-server"` or `"CHANGE-ME"` that's obviously meant to be replaced, and/or add a comment `# TODO: rename this for your fork`.
 

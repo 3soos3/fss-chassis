@@ -13,7 +13,7 @@ An extensible [Model Context Protocol](https://modelcontextprotocol.io/) server 
 
 ```bash
 pip install -e ".[dev]"
-python -m mcp_chassis
+python -m fss_mcp
 ```
 
 See [docs/FORK_GUIDE.md](docs/FORK_GUIDE.md) for full setup, extension authoring, and configuration docs.
@@ -61,7 +61,7 @@ When `false`, error responses contain only the error code and a correlation ID f
 
 Extension files are checked for safe permissions before import. World-writable files are rejected with a warning. All extension imports are logged at WARNING level to create an audit trail.
 
-Extension directories should be writable only by trusted users or build processes. See the security note in `src/mcp_chassis/extensions/__init__.py` for details.
+Extension directories should be writable only by trusted users or build processes. See the security note in `src/fss_mcp/extensions/__init__.py` for details.
 
 ## Security Profiles
 

@@ -18,7 +18,7 @@ MCP Chassis Server.
 2. **Extension crashing on import.** A bad extension can crash the server before
    it processes any messages. Run:
    ```bash
-   python -m mcp_chassis --config config/default.toml --log-level DEBUG 2>&1 | head -50
+   python -m fss_mcp --config config/default.toml --log-level DEBUG 2>&1 | head -50
    ```
    Look for `ERROR` lines about extension loading.
 
@@ -43,7 +43,7 @@ MCP Chassis Server.
 3. **Rate limiting is overly strict for development.** Set `profile = "permissive"` in
    `config/default.toml` during development, or use the env var:
    ```bash
-   MCP_RATE_LIMIT_ENABLED=false python -m mcp_chassis
+   MCP_RATE_LIMIT_ENABLED=false python -m fss_mcp
    ```
 
 ---
@@ -128,13 +128,13 @@ characters are removed.
 
 5. **Syntax error in the extension file.** Run:
    ```bash
-   python -c "import mcp_chassis.extensions.tools.my_tool"
+   python -c "import fss_mcp.extensions.tools.my_tool"
    ```
    This will show the syntax error directly.
 
 6. **Check logs for discovery errors:**
    ```bash
-   python -m mcp_chassis --log-level DEBUG 2>&1 | grep extension
+   python -m fss_mcp --log-level DEBUG 2>&1 | grep extension
    ```
 
 ---
@@ -163,17 +163,17 @@ characters are removed.
 **Fix:** The config path must be absolute or relative to the current working directory.
 When running from the repo root:
 ```bash
-python -m mcp_chassis --config config/default.toml
+python -m fss_mcp --config config/default.toml
 ```
 
 From another directory, use an absolute path:
 ```bash
-python -m mcp_chassis --config /path/to/repo/config/default.toml
+python -m fss_mcp --config /path/to/repo/config/default.toml
 ```
 
 Or set the env var:
 ```bash
-MCP_CHASSIS_CONFIG=/path/to/config.toml python -m mcp_chassis
+MCP_CHASSIS_CONFIG=/path/to/config.toml python -m fss_mcp
 ```
 
 ---
@@ -202,9 +202,9 @@ MCP_CHASSIS_CONFIG=/path/to/config.toml python -m mcp_chassis
 
 ---
 
-## Issue 9: `ModuleNotFoundError` for `mcp_chassis`
+## Issue 9: `ModuleNotFoundError` for `fss_mcp`
 
-**Symptom:** `python -m mcp_chassis` fails with `No module named mcp_chassis`.
+**Symptom:** `python -m fss_mcp` fails with `No module named fss_mcp`.
 
 **Fix:** The package is not installed. Install it in editable mode:
 ```bash
@@ -229,7 +229,7 @@ pip install .
 
 2. **Server crashing on startup.** Run the server manually to see error output:
    ```bash
-   python -m mcp_chassis --config config/default.toml --log-level DEBUG 2>&1
+   python -m fss_mcp --config config/default.toml --log-level DEBUG 2>&1
    ```
 
 3. **Server writing debug logs to stdout.** If any code writes to `stdout` (e.g., a
@@ -313,12 +313,12 @@ the token will come from the HTTP `Authorization` header.
 
 To see all server internals:
 ```bash
-python -m mcp_chassis --log-level DEBUG 2>debug.log
+python -m fss_mcp --log-level DEBUG 2>debug.log
 ```
 
 The log is JSON-structured. Filter for specific loggers:
 ```bash
-python -m mcp_chassis --log-level DEBUG 2>&1 | python -c "
+python -m fss_mcp --log-level DEBUG 2>&1 | python -c "
 import sys, json
 for line in sys.stdin:
     try:

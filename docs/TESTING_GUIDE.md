@@ -22,16 +22,16 @@ uv pip install -e ".[dev]"
 
 ```bash
 # With default config (config/default.toml)
-python -m mcp_chassis
+python -m fss_mcp
 
 # With custom config
-python -m mcp_chassis --config /path/to/config.toml
+python -m fss_mcp --config /path/to/config.toml
 
 # With debug logging
-python -m mcp_chassis --log-level DEBUG
+python -m fss_mcp --log-level DEBUG
 
 # Check version
-python -m mcp_chassis --version
+python -m fss_mcp --version
 ```
 
 The server communicates over **stdio** (stdin/stdout). It expects MCP JSON-RPC messages on stdin and writes responses to stdout. All logging goes to stderr.
@@ -77,7 +77,7 @@ ruff format src/ tests/
 The server should respond correctly to the MCP protocol over stdio. You can test with a simple script or pipe JSON-RPC messages:
 
 ```bash
-echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}' | python -m mcp_chassis --config config/default.toml 2>/dev/null
+echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}' | python -m fss_mcp --config config/default.toml 2>/dev/null
 ```
 
 Expected: A JSON-RPC response with server capabilities.
@@ -150,13 +150,13 @@ Test with different profiles by modifying `config/default.toml`:
 
 Or override via environment:
 ```bash
-MCP_SECURITY_PROFILE=permissive python -m mcp_chassis
+MCP_SECURITY_PROFILE=permissive python -m fss_mcp
 ```
 
 ### 10. Debug Logging
 
 ```bash
-MCP_LOG_LEVEL=DEBUG python -m mcp_chassis 2>debug.log
+MCP_LOG_LEVEL=DEBUG python -m fss_mcp 2>debug.log
 ```
 
 Check `debug.log` for structured JSON log entries including correlation IDs.

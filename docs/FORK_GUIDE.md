@@ -10,14 +10,14 @@ This guide explains how to fork this MCP server chassis and extend it with your 
 2. Install dependencies: `pip install -e ".[dev]"`
 3. Run tests to confirm the baseline works: `make test`
 4. Add your extensions (see sections below).
-5. Run the server: `python -m mcp_chassis`
+5. Run the server: `python -m fss_mcp`
 
 ---
 
 ## Project Structure
 
 ```
-src/mcp_chassis/
+packages/fss-mcp/src/fss_mcp/
 ├── extensions/
 │   ├── __init__.py          # Auto-discovery logic (do not modify)
 │   ├── batch.py             # Batch registration helper
@@ -44,7 +44,7 @@ config/
 
 ## Adding a Tool
 
-Create a new `.py` file in `src/mcp_chassis/extensions/tools/`.
+Create a new `.py` file in `packages/fss-mcp/src/fss_mcp/extensions/tools/`.
 
 **Template:**
 
@@ -55,8 +55,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from mcp_chassis.context import HandlerContext
-    from mcp_chassis.server import ChassisServer
+    from fss_mcp.context import HandlerContext
+    from fss_mcp.server import ChassisServer
 
 
 def register(server: "ChassisServer") -> None:
@@ -108,7 +108,7 @@ If you have many tools that follow the same pattern — call a method on a share
 ```python
 """My tools — batch registered."""
 
-from mcp_chassis.extensions.batch import register_simple_tools
+from fss_mcp.extensions.batch import register_simple_tools
 
 TOOLS = [
     {
@@ -151,7 +151,7 @@ server.register_tool(
 
 ## Adding a Resource
 
-Create a new `.py` file in `src/mcp_chassis/extensions/resources/`.
+Create a new `.py` file in `packages/fss-mcp/src/fss_mcp/extensions/resources/`.
 
 **Template:**
 
@@ -163,8 +163,8 @@ import json
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mcp_chassis.context import HandlerContext
-    from mcp_chassis.server import ChassisServer
+    from fss_mcp.context import HandlerContext
+    from fss_mcp.server import ChassisServer
 
 
 def register(server: "ChassisServer") -> None:
@@ -212,7 +212,7 @@ server.register_resource(
 
 ## Adding a Prompt
 
-Create a new `.py` file in `src/mcp_chassis/extensions/prompts/`.
+Create a new `.py` file in `packages/fss-mcp/src/fss_mcp/extensions/prompts/`.
 
 **Template:**
 
@@ -223,8 +223,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from mcp_chassis.context import HandlerContext
-    from mcp_chassis.server import ChassisServer
+    from fss_mcp.context import HandlerContext
+    from fss_mcp.server import ChassisServer
 
 _ARGUMENTS = [
     {"name": "topic", "description": "The topic to discuss.", "required": True},
@@ -285,7 +285,7 @@ server.register_prompt(
 
 If your extensions need shared state — a database connection, an API client, a knowledge base — use the init hook. This runs after middleware setup but before extension discovery, so all extensions can access the state you set up.
 
-**Step 1:** Create an init module (e.g., `src/mcp_chassis/extensions/my_init.py`):
+**Step 1:** Create an init module (e.g., `packages/fss-mcp/src/fss_mcp/extensions/my_init.py`):
 
 ```python
 """Init hook — sets up shared state for extensions."""
@@ -308,7 +308,7 @@ def on_init(server):
 ```toml
 [extensions]
 auto_discover = true
-init_module = "mcp_chassis.extensions.my_init"
+init_module = "fss_mcp.extensions.my_init"
 ```
 
 **Step 3:** Access the shared state in your tool extensions:
@@ -411,7 +411,7 @@ provider = "none"
 
 [extensions]
 auto_discover = true
-# init_module = "mcp_chassis.extensions.my_init"  # Optional init hook
+# init_module = "fss_mcp.extensions.my_init"  # Optional init hook
 
 [diagnostics]
 health_check_enabled = true
@@ -459,7 +459,7 @@ MCP_AUTH_TOKEN=secret123      # For future HTTP transport only
 The server does not auto-load `.env` files. Use the `--env-file` flag to explicitly load environment variables (e.g., API keys) from a file before the server starts:
 
 ```bash
-python -m mcp_chassis --config config/default.toml --env-file .env
+python -m fss_mcp --config config/default.toml --env-file .env
 ```
 
 The `.env` file uses `KEY=VALUE` format (one per line). Blank lines and `#` comments are skipped. Values may be optionally quoted. An `export ` prefix is accepted. Variables already set in the environment are **not** overwritten, so system-level env vars take precedence.
@@ -485,7 +485,7 @@ For MCP client configurations (e.g., Claude Desktop), include `--env-file` in th
   "mcpServers": {
     "my-server": {
       "command": "python",
-      "args": ["-m", "mcp_chassis", "--config", "/path/to/config.toml", "--env-file", "/path/to/.env"]
+      "args": ["-m", "fss_mcp", "--config", "/path/to/config.toml", "--env-file", "/path/to/.env"]
     }
   }
 }
@@ -499,10 +499,10 @@ Write unit tests in `tests/unit/` using pytest:
 
 ```python
 import pytest
-from mcp_chassis.config import ServerConfig
-from mcp_chassis.context import HandlerContext
-from mcp_chassis.server import ChassisServer
-from mcp_chassis.extensions.tools.my_tool import register
+from fss_mcp.config import ServerConfig
+from fss_mcp.context import HandlerContext
+from fss_mcp.server import ChassisServer
+from fss_mcp.extensions.tools.my_tool import register
 
 @pytest.fixture()
 def server() -> ChassisServer:
@@ -610,7 +610,7 @@ Add to your MCP client configuration:
   "mcpServers": {
     "my-server": {
       "command": "python",
-      "args": ["-m", "mcp_chassis", "--config", "/path/to/config.toml", "--env-file", "/path/to/.env"]
+      "args": ["-m", "fss_mcp", "--config", "/path/to/config.toml", "--env-file", "/path/to/.env"]
     }
   }
 }
@@ -656,7 +656,7 @@ async def _handle_my_tool(arguments: dict, context: HandlerContext) -> str:
 For structured errors with codes, use the chassis error types:
 
 ```python
-from mcp_chassis.errors import ValidationError
+from fss_mcp.errors import ValidationError
 
 async def _handle_my_tool(arguments: dict, context: HandlerContext) -> str:
     value = arguments["value"]
@@ -691,7 +691,7 @@ Add the template repository as a git remote in your fork:
 
 ```bash
 cd my-fork/
-git remote add template https://github.com/.../mcp-chassis-server.git
+git remote add template https://github.com/.../fss-mcp-server.git
 git fetch template
 ```
 
@@ -749,9 +749,9 @@ If you find yourself frequently conflicting on a specific template file, conside
 ## Disabling Example Extensions
 
 To remove the bundled example extensions, delete:
-- `src/mcp_chassis/extensions/tools/example_tool.py`
-- `src/mcp_chassis/extensions/resources/example_resource.py`
-- `src/mcp_chassis/extensions/prompts/example_prompt.py`
+- `packages/fss-mcp/src/fss_mcp/extensions/tools/example_tool.py`
+- `packages/fss-mcp/src/fss_mcp/extensions/resources/example_resource.py`
+- `packages/fss-mcp/src/fss_mcp/extensions/prompts/example_prompt.py`
 - `tests/integration/test_stdio_examples.py` (optional — auto-skips when examples are absent)
 
 The auto-discovery system will automatically skip missing files.

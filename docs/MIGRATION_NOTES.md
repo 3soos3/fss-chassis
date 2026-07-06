@@ -110,17 +110,17 @@ When MCP SDK v2.0 is declared stable, perform these steps:
 
 - [ ] Update `pyproject.toml`: change `mcp>=1.2.0,<2.0` to `mcp>=2.0,<3.0`
 - [ ] Read the official v2.0 migration guide and release notes
-- [ ] Update `src/mcp_chassis/server.py`:
+- [ ] Update `packages/fss-mcp/src/fss_mcp/server.py`:
   - [ ] Replace low-level `Server` import with v2.0 equivalent
   - [ ] Adapt `_register_sdk_handlers()` to new decorator API
   - [ ] Update `run_on_streams()` if the transport API changed
-- [ ] Update `src/mcp_chassis/transport/stdio.py`:
+- [ ] Update `packages/fss-mcp/src/fss_mcp/transport/stdio.py`:
   - [ ] Adapt to new `stdio_server()` interface (or remove if SDK handles it)
   - [ ] Verify size-bounding protection still works
-- [ ] Update `src/mcp_chassis/context.py`:
+- [ ] Update `packages/fss-mcp/src/fss_mcp/context.py`:
   - [ ] Adapt `_make_context()` in `server.py` to wrap the new context type
   - [ ] Verify all `HandlerContext` methods still work
-- [ ] Update `src/mcp_chassis/transport/http_stub.py`:
+- [ ] Update `packages/fss-mcp/src/fss_mcp/transport/http_stub.py`:
   - [ ] Implement real SSE and Streamable HTTP transports using v2.0 API
 - [ ] Run full test suite: `make test`
 - [ ] Run security review on changed modules
