@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fss-core"
-version = "0.1.0"
+version = "0.3"
 description = "FSS protocol primitives: provenance, integrity, auth, FIT"
 requires-python = ">=3.11"
 dependencies = ["jcs>=0.2.0"]

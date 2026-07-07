@@ -391,7 +391,7 @@ wheels = [
 
 [[package]]
 name = "fss-core"
-version = "0.1.0"
+version = "0.3"
 source = { editable = "packages/fss-core" }
 dependencies = [
     { name = "jcs" },
@@ -415,7 +415,7 @@ provides-extras = ["auth"]
 
 [[package]]
 name = "fss-mcp"
-version = "1.2.0"
+version = "0.3"
 source = { editable = "packages/fss-mcp" }
 dependencies = [
     { name = "fss-core" },

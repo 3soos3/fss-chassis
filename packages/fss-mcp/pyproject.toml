@@ -4,11 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fss-mcp"
-version = "1.2.0"
+version = "0.3"
 description = "FSS-compliant MCP server chassis"
 requires-python = ">=3.11"
 dependencies = [
-    "fss-core>=0.1.0",
+    "fss-core>=0.3",
     "mcp>=1.2.0,<2.0",
 ]
 

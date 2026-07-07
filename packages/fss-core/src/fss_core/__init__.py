@@ -45,7 +45,11 @@ from fss_core.integrity import (
 )
 from fss_core.provenance import build_provenance_record
 
-__version__ = "0.1.0"
+from importlib.metadata import PackageNotFoundError, version
+try:
+    __version__ = version("fss-core")
+except PackageNotFoundError:
+    __version__ = "unknown"
 
 __all__ = [
     # errors

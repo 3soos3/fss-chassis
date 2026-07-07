@@ -1,3 +1,7 @@
 """FSS MCP — FSS-compliant MCP server chassis."""
 
-__version__ = "1.2.0"
+from importlib.metadata import PackageNotFoundError, version
+try:
+    __version__ = version("fss-mcp")
+except PackageNotFoundError:
+    __version__ = "unknown"

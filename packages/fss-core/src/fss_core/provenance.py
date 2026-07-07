@@ -42,6 +42,16 @@ _DEFAULT_INVOCATION_TYPE = "agent_supervised"
 _VALID_INVOCATION_TYPES = {"human_direct", "agent_supervised", "agent_autonomous"}
 
 
+def _build_assessed_under(fss_binding_version: str | None) -> str:
+    """Construct the assessed_under identifier from package versions and FSS_LEVEL."""
+    import fss_core
+    spec = fss_core.__version__
+    level = os.environ.get("FSS_LEVEL", "1")
+    if fss_binding_version:
+        return f"FSS-0010v{fss_binding_version}@FSS-0009v{spec}L{level}"
+    return f"FSS-0009v{spec}L{level}"
+
+
 def _get_invocation_type() -> str:
     """Return the effective invocation_type for this request.
 
@@ -60,6 +70,7 @@ def build_provenance_record(
     kb_version_id: str | None = None,
     kb_version: str | None = None,
     server_version: str | None = None,
+    fss_binding_version: str | None = None,
 ) -> dict[str, Any]:
     """Build a complete FSS-0004 §3.1 provenance record.
 
@@ -121,8 +132,7 @@ def build_provenance_record(
         "image_digest": os.environ.get("IMAGE_DIGEST") or None,
         "assessed_under": (
             os.environ.get("FSS_ASSESSED_UNDER")
-            or f"FSS-0009v{os.environ.get('FSS_SPEC_VERSION', '1.0')}"
-               f"L{os.environ.get('FSS_CONFORMANCE_LEVEL', '1')}"
+            or _build_assessed_under(fss_binding_version)
         ),
         "fit_jti": fss_fit_jti.get(),
         "fit_issuer": fss_fit_issuer.get(),

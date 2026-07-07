@@ -55,6 +55,7 @@ def register_simple_tools(
     server: ChassisServer,
     source: Any,
     definitions: list[dict[str, Any]],
+    default_tool_version: str = "0.0.0",
 ) -> None:
     """Register multiple tools from declarative definitions.
 
@@ -73,13 +74,14 @@ def register_simple_tools(
         definitions: List of tool definition dicts.
     """
     for defn in definitions:
-        _register_one(server, source, defn)
+        _register_one(server, source, defn, default_tool_version)
 
 
 def _register_one(
     server: ChassisServer,
     source: Any,
     defn: dict[str, Any],
+    default_tool_version: str = "0.0.0",
 ) -> None:
     """Register a single tool from a definition dict.
 
@@ -95,7 +97,7 @@ def _register_one(
     # FSS manifest fields
     param_schema: dict[str, Any] = defn.get("param_schema", {"type": "string"})
     fss_kwargs = {
-        "tool_version": defn.get("tool_version", "1.0.0"),
+        "tool_version": defn.get("tool_version", default_tool_version),
         "idempotent": defn.get("idempotent", True),
         "side_effects": defn.get("side_effects", False),
         "deterministic": defn.get("deterministic", True),
