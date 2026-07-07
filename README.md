@@ -1,109 +1,152 @@
-# MCP Server Chassis
+# fss-chassis
 
-An extensible [Model Context Protocol](https://modelcontextprotocol.io/) server chassis in Python. Fork it, add your extensions, and you have an MCP server with built-in security middleware, extension auto-discovery, and configuration management.
+A Python monorepo providing two packages that implement the Forensic Software Standard (FSS) for MCP servers.
 
-## Features
+| Package | PyPI | Implements | MCP dependency |
+|---|---|---|---|
+| `fss-core` | `pip install fss-core` | FSS-0009 — protocol primitives | None |
+| `fss-mcp` | `pip install fss-mcp` | FSS-0010 — MCP server chassis | `mcp>=1.2.0` |
 
-- **Security middleware pipeline** — I/O limits, authentication, rate limiting, input sanitization, and input validation applied automatically before handlers run
-- **Extension auto-discovery** — drop `.py` files into `extensions/tools/`, `extensions/resources/`, or `extensions/prompts/` and they're registered at startup
-- **Three security profiles** — `strict` (production), `moderate` (development), `permissive` (testing) with per-feature overrides
-- **Configuration via TOML** — with environment variable overrides and named profile defaults
+`fss-core` is usable by any FSS-compliant service regardless of transport. `fss-mcp` is the MCP-specific layer built on top of it.
 
-## Quick Start
+---
+
+## What they provide
+
+### fss-core
+
+- **Provenance records** — assembles the `_provenance` block attached to every tool response (transaction ID, CAI digests, KB version, tool/server version, FSS conformance identifier)
+- **Content-Addressed Identifiers (CAI)** — SHA-256/384/512 hashing with optional RFC 8785 JCS canonicalisation (FSS-0005)
+- **Ed25519 signing** — `data_signature` and `provenance_signature` for L2/L3 deployments
+- **Authentication providers** — `NoAuthProvider`, `TokenAuthProvider`, `ApiKeyProvider`, `OAuthJWTProvider`
+- **FIT verification** — 11-step Forensic Investigation Token procedure (FSS-0007)
+- **FSS context variables** — async-safe per-request context vars for investigation ID, analyst identity, client identity, FIT claims
+
+### fss-mcp
+
+- **`ChassisServer`** — wires the MCP SDK, middleware pipeline, and extension discovery
+- **Security middleware** — I/O limits → auth → rate limiting → sanitisation → validation, applied before every handler
+- **Extension auto-discovery** — `discovery_packages` config key points the scanner at any installed package; `init_module` runs a hook before discovery
+- **Three security profiles** — `strict` / `moderate` / `permissive` with per-field overrides
+- **Transports** — stdio (default) and HTTP/SSE
+
+---
+
+## Development setup
+
+Requires [uv](https://docs.astral.sh/uv/).
 
 ```bash
-pip install -e ".[dev]"
-python -m fss_mcp
+git clone https://github.com/3soos3/fss-chassis
+cd fss-chassis
+uv sync --extra otel   # installs both packages editable + all dev/otel deps
 ```
 
-See [docs/FORK_GUIDE.md](docs/FORK_GUIDE.md) for full setup, extension authoring, and configuration docs.
-
-## Security Middleware
-
-**IMPORTANT**: These protections are a basic attempt to provide some security by default. If you decide to use this server in a production setting, we recommend you still perform security testing and modify the code of this project to implement security mitigations as appropriate for your threat environment and risk tolerance.
-
-The middleware pipeline processes every tool request in this order:
-
-```
-I/O limits → Auth → Rate limit → Sanitize → Validate
+```bash
+make test        # pytest on both packages
+make lint        # ruff check
+make typecheck   # mypy packages/
+make audit       # pip-audit on both packages
 ```
 
-Sanitization runs before validation so that validators operate on cleaned data.
+---
 
-### Input Sanitization
+## Building an MCP server on fss-mcp
 
-Three levels control what sanitization is applied:
-
-| Level | Behavior |
-|---|---|
-| `strict` | Unicode NFC normalization, control char removal, path traversal removal (with URL-decoding and stacked-payload protection), shell metacharacter removal (including quotes, tilde, newline) |
-| `moderate` | Control char removal, null byte removal, path traversal removal (with URL-decoding and stacked-payload protection) |
-| `permissive` | Null byte removal only |
-
-Path traversal sanitization decodes percent-encoded traversal characters (`%2e`, `%2f`, `%5c`) and applies removal in a loop until no traversal patterns remain, preventing evasion via stacked payloads like `....//`.
-
-### Input Validation
-
-Validates tool arguments against JSON schemas: required fields, types, string length, array length, and nesting depth. Schemas that set `"additionalProperties": false` will reject unexpected keys.
-
-### Error Verbosity
-
-Error responses can include detailed internal information (validation limits, schema paths) or generic messages with only an error code and correlation ID. Controlled by the `detailed_errors` setting:
+### 1. Declare the dependency
 
 ```toml
-[security]
-detailed_errors = true   # Show detailed error messages (default: false for strict, true for moderate/permissive)
+# pyproject.toml
+[project]
+dependencies = ["fss-mcp[http,auth,otel]>=0.3"]
 ```
 
-When `false`, error responses contain only the error code and a correlation ID for server-side log lookup. When `true`, the full error message is included, which helps LLM clients self-correct.
+### 2. Write an init hook
 
-### Extension Security
+```python
+# your_package/init.py
+def on_init(server) -> None:
+    import your_package
+    server._server_version = your_package.__version__
+    server._kb = load_your_data()
+```
 
-Extension files are checked for safe permissions before import. World-writable files are rejected with a warning. All extension imports are logged at WARNING level to create an audit trail.
+### 3. Write tool extensions
 
-Extension directories should be writable only by trusted users or build processes. See the security note in `src/fss_mcp/extensions/__init__.py` for details.
+```python
+# your_package/tools.py
+def register(server) -> None:
+    import your_package
+    async def _handle(arguments, context):
+        return {"result": server._kb.query(arguments["q"])}
 
-## Security Profiles
+    server.register_tool(
+        name="my_tool",
+        description="...",
+        input_schema={"type": "object", "properties": {"q": {"type": "string"}}, "required": ["q"]},
+        handler=_handle,
+        tool_version=your_package.__version__,
+    )
+```
 
-| Profile | Rate Limit | I/O Limits | Sanitization | Error Detail |
-|---|---|---|---|---|
-| `strict` | 60 rpm global, 30 rpm/tool | 1 MB req, 5 MB resp | Full (path traversal, shell metachars, control chars) | Generic |
-| `moderate` | 120 rpm global, 60 rpm/tool | 5 MB req, 20 MB resp | Path traversal + control chars | Detailed |
-| `permissive` | Disabled | 50 MB req/resp | Null bytes only | Detailed |
+### 4. Point config at your package
 
-## Configuration
+```toml
+# config/default.toml
+[extensions]
+init_module = "your_package.init"
+discovery_packages = ["your_package.tools"]
+```
 
-Edit `config/default.toml` or use environment variables:
+### 5. Run
 
 ```bash
-MCP_LOG_LEVEL=DEBUG
-MCP_SECURITY_PROFILE=moderate
-MCP_RATE_LIMIT_ENABLED=false
-MCP_CHASSIS_CONFIG=/path/to/config.toml
-MCP_AUTH_TOKEN=secret123        # For future HTTP transport only
+python -m fss_mcp --config config/default.toml
 ```
 
-> **Note:** Token auth (`provider = "token"`) is not supported on the stdio transport.
-> Over stdio, the OS provides process-level isolation. Token auth will be enforced
-> when HTTP transport is implemented.
+---
 
-See [docs/FORK_GUIDE.md](docs/FORK_GUIDE.md) for the full TOML configuration reference.
+## FSS conformance
 
-## Testing
+Every tool response includes a `_provenance` block. The `assessed_under` field is constructed automatically from the installed package versions:
 
-```bash
-python -m pytest tests/              # All tests
-python -m pytest tests/unit/         # Unit tests only
-python -m pytest tests/integration/  # Integration tests only
+```
+FSS-0010v{fss_mcp.__version__}@FSS-0009v{fss_core.__version__}L{FSS_LEVEL}
 ```
 
-## Project Documentation
+Set `FSS_LEVEL` to the conformance level you have self-assessed against FSS-0009 Appendix A (default: `1`). This is the only operator-facing FSS configuration required.
 
-| Document | Purpose |
+| Level | Key additions over previous |
 |---|---|
-| [docs/FORK_GUIDE.md](docs/FORK_GUIDE.md) | How to add tools, resources, prompts, and configure the server. |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Component design and data flow. |
-| [docs/TESTING_GUIDE.md](docs/TESTING_GUIDE.md) | Manual testing instructions. |
-| [docs/NARRATIVE.md](docs/NARRATIVE.md) | Description of server for non-developer tech staff. |
-| [docs/MIGRATION_NOTES.md](docs/MIGRATION_NOTES.md) | Notes for the migration of this server to MCP SDK version 2.0 when it is released in 2026. |
-| [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | General troubleshooting guide. |
+| L1 | Provenance record in every response, tool manifest fields, CAI integrity |
+| L2 | Ed25519 data_signature, JCS canonicalisation required, extended attribution |
+| L3 | FIT verification, provenance_signature, evidentiary status, image_digest |
+| L4 | SBOM, development standards (FSS-0008), KATs, dependency pinning |
+
+---
+
+## Security middleware
+
+Every request passes through the pipeline in this order:
+
+```
+I/O limits → Auth → Rate limit → Sanitise → Validate
+```
+
+| Profile | Rate limit | I/O limits | Sanitisation |
+|---|---|---|---|
+| `strict` | 60 rpm global / 30 rpm per tool | 1 MB req / 5 MB resp | Path traversal, shell metacharacters, control chars |
+| `moderate` | 120 rpm global / 60 rpm per tool | 5 MB req / 20 MB resp | Path traversal, control chars |
+| `permissive` | Disabled | 50 MB req/resp | Null bytes only |
+
+---
+
+## Documentation
+
+| Document | Contents |
+|---|---|
+| [docs/FORK_GUIDE.md](docs/FORK_GUIDE.md) | Step-by-step guide to building a server on fss-mcp |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Component design and request lifecycle |
+| [docs/TESTING_GUIDE.md](docs/TESTING_GUIDE.md) | Testing approach and manual test instructions |
+| [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Common issues and fixes |
+| [docs/CHASSIS_RECOMMENDATIONS.md](docs/CHASSIS_RECOMMENDATIONS.md) | Recommended patterns for production deployments |
