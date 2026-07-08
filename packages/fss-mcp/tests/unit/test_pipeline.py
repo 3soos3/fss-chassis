@@ -647,9 +647,7 @@ class TestRunFIT:
         fss_fit_token.set("")
         fss_investigation_id.set(None)
 
-    async def test_valid_fit_token_sets_context_vars(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    async def test_valid_fit_token_sets_context_vars(self, monkeypatch: pytest.MonkeyPatch) -> None:
         from unittest.mock import AsyncMock, patch
 
         from fss_core.fit import FITClaims
@@ -693,9 +691,7 @@ class TestRunFIT:
         assert fss_investigation_id_verified.get() is True
         fss_fit_token.set("")
 
-    async def test_fit_verification_failure_blocks(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    async def test_fit_verification_failure_blocks(self, monkeypatch: pytest.MonkeyPatch) -> None:
         from unittest.mock import AsyncMock, patch
 
         from fss_core.fit import FITVerificationError
@@ -707,9 +703,7 @@ class TestRunFIT:
 
         with patch(
             "fss_core.fit.verify_fit",
-            new=AsyncMock(
-                side_effect=FITVerificationError(4, "Signature verification failed")
-            ),
+            new=AsyncMock(side_effect=FITVerificationError(4, "Signature verification failed")),
         ):
             pipeline = self._make_pipeline()
             result = await pipeline._run_fit("any_tool")

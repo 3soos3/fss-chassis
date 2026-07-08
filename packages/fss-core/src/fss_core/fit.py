@@ -1,4 +1,5 @@
 """FIT JWT validation (FSS-0006 §8)."""
+
 from __future__ import annotations
 
 import logging
@@ -35,6 +36,7 @@ class FITVerificationError(Exception):
 
 async def _fetch_jwks(url: str) -> Any:
     import httpx
+
     now = time.monotonic()
     cached = _JWKS_CACHE.get(url)
     if cached and (now - cached[1]) < _JWKS_TTL:
@@ -49,6 +51,7 @@ async def _fetch_jwks(url: str) -> Any:
 
 def _jwks_url_for_issuer(issuer: str) -> str:
     import os
+
     override = os.environ.get("FSS_FIT_ISSUER_JWKS_URL")
     if override:
         return override
@@ -58,6 +61,7 @@ def _jwks_url_for_issuer(issuer: str) -> str:
 
 def _is_trusted_issuer(issuer: str) -> bool:
     import os
+
     trusted_env = os.environ.get("FSS_FIT_TRUSTED_ISSUERS", "")
     if not trusted_env:
         return True  # Open trust — accept any issuer we can verify
@@ -150,6 +154,7 @@ async def verify_fit(
     authorized_tools: list[str] = payload.get("authorized_tools", [])
     if authorized_tools:
         import re as _re
+
         matched = any(
             tool_name == pattern or _re.fullmatch(pattern, tool_name)
             for pattern in authorized_tools
@@ -176,6 +181,7 @@ async def verify_fit(
 
     # Build exp as ISO 8601
     import datetime
+
     exp = payload.get("exp", 0)
     valid_until = datetime.datetime.fromtimestamp(exp, tz=datetime.UTC).strftime(
         "%Y-%m-%dT%H:%M:%SZ"

@@ -283,8 +283,10 @@ class HTTPTransport(TransportBase):
                 JSON response with deployment record.
             """
             from datetime import UTC, datetime
+
             try:
                 from fss_core.integrity import _compute_key_id, load_signing_key
+
                 key = load_signing_key()
             except Exception:
                 key = None
@@ -306,6 +308,7 @@ class HTTPTransport(TransportBase):
             _conf_level = os.environ.get("FSS_LEVEL", "1")
             import fss_core as _fss_core
             import fss_mcp as _fss_mcp
+
             _spec_ver = ".".join(_fss_core.__version__.split(".")[:2])
             _binding_ver = ".".join(_fss_mcp.__version__.split(".")[:2])
             _assessed_under = f"FSS-0010v{_binding_ver}@FSS-0009v{_spec_ver}L{_conf_level}"
@@ -400,22 +403,23 @@ class HTTPTransport(TransportBase):
                 async def _send_with_txn_header(event: dict) -> None:
                     if event.get("type") == "http.response.start":
                         from fss_core.fss_context import fss_transaction_id as _ftxn
+
                         txn = _ftxn.get()
                         if txn:
                             hdrs = list(event.get("headers", []))
-                            hdrs.append(
-                                (b"mcp-transaction-id", txn.encode())
-                            )
+                            hdrs.append((b"mcp-transaction-id", txn.encode()))
                             event = {**event, "headers": hdrs}
                     await send(event)
 
                 # W3C trace context propagation — attach incoming traceparent/tracestate
                 # so spans created during this request become children of the caller's trace.
                 from fss_mcp.utils.telemetry import get_telemetry
+
                 _tm = get_telemetry()
                 if _tm.enabled:
                     from opentelemetry import context as _otel_ctx
                     from opentelemetry import propagate as _propagate
+
                     _ctx = _propagate.extract(headers_dict)
                     _token = _otel_ctx.attach(_ctx)
                     try:

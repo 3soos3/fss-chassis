@@ -76,6 +76,7 @@ class TelemetryManager:
 
             from opentelemetry.propagate import set_global_textmap
             from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
+
             set_global_textmap(TraceContextTextMapPropagator())
 
             metric_reader = PeriodicExportingMetricReader(

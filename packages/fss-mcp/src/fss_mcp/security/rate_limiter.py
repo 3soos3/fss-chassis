@@ -204,9 +204,9 @@ class RateLimiter:
         gone and holding the entry serves no purpose.
         """
         stale = [
-            key for key, b in self._tool_buckets.items()
-            if b.refill_rate > 0
-            and (now - b.last_refill) > (b.capacity / b.refill_rate)
+            key
+            for key, b in self._tool_buckets.items()
+            if b.refill_rate > 0 and (now - b.last_refill) > (b.capacity / b.refill_rate)
         ]
         for key in stale:
             del self._tool_buckets[key]

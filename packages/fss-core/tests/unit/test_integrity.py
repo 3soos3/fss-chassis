@@ -390,9 +390,11 @@ class TestVectorSigning:
 
         try:
             import jcs as _jcs
+
             def canonicalize(obj: object) -> bytes:
                 return _jcs.canonicalize(obj)
         except ImportError:
+
             def canonicalize(obj: object) -> bytes:
                 return json.dumps(obj, sort_keys=True, separators=(",", ":")).encode()
 
@@ -455,8 +457,7 @@ class TestVectorCAI:
         for v in vectors:
             got = compute_json_cai(v["input"])
             assert got == v["cai"], (
-                f"Vector {v['id']} ({v['description']}): "
-                f"got {got!r}, want {v['cai']!r}"
+                f"Vector {v['id']} ({v['description']}): got {got!r}, want {v['cai']!r}"
             )
 
 
@@ -559,9 +560,7 @@ class TestBuildJWKS:
         raw = base64.urlsafe_b64decode(x + "==")
         assert len(raw) == 32
 
-    def test_revocation_fields_default_to_not_revoked(
-        self, ed25519_key: object
-    ) -> None:
+    def test_revocation_fields_default_to_not_revoked(self, ed25519_key: object) -> None:
         from fss_core.integrity import build_jwks
 
         key_entry = build_jwks(ed25519_key)["keys"][0]
@@ -579,32 +578,22 @@ class TestCheckJCSRequired:
 
         check_jcs_required()  # should not raise
 
-    def test_fss_metadata_unset_no_exit(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_fss_metadata_unset_no_exit(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv("FSS_METADATA", raising=False)
         from fss_core.integrity import check_jcs_required
 
         check_jcs_required()  # should not raise
 
-    def test_fss_metadata_true_jcs_available_no_exit(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_fss_metadata_true_jcs_available_no_exit(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("FSS_METADATA", "true")
-        monkeypatch.setattr(
-            "fss_core.integrity._JCS_AVAILABLE", True
-        )
+        monkeypatch.setattr("fss_core.integrity._JCS_AVAILABLE", True)
         from fss_core.integrity import check_jcs_required
 
         check_jcs_required()  # should not raise
 
-    def test_fss_metadata_true_jcs_unavailable_exits(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_fss_metadata_true_jcs_unavailable_exits(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("FSS_METADATA", "true")
-        monkeypatch.setattr(
-            "fss_core.integrity._JCS_AVAILABLE", False
-        )
+        monkeypatch.setattr("fss_core.integrity._JCS_AVAILABLE", False)
         from fss_core.integrity import check_jcs_required
 
         with pytest.raises(SystemExit) as exc_info:

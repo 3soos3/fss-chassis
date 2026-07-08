@@ -142,11 +142,14 @@ def log_security_event(
     )
     try:
         from fss_mcp.utils.observer import emit as _obs
-        _obs("security",
-             event_type=event_type,
-             error_detail=error_detail,
-             tool_name=tool_name,
-             transaction_id=transaction_id)
+
+        _obs(
+            "security",
+            event_type=event_type,
+            error_detail=error_detail,
+            tool_name=tool_name,
+            transaction_id=transaction_id,
+        )
     except Exception:
         pass
 

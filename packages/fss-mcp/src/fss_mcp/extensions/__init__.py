@@ -98,9 +98,7 @@ def discover_extensions(
     for pkg_name in extra_packages:
         spec = importlib.util.find_spec(pkg_name)
         if spec is None or spec.submodule_search_locations is None:
-            logger.warning(
-                "discovery_packages entry '%s' not found, skipping", pkg_name
-            )
+            logger.warning("discovery_packages entry '%s' not found, skipping", pkg_name)
             continue
         for loc in spec.submodule_search_locations:
             _scan_directory(Path(loc), pkg_name, server)

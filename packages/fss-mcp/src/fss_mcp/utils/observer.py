@@ -5,6 +5,7 @@ to the observer service running in the cluster.  Fire-and-forget via a
 daemon thread — never blocks the tool call path.  No-op when the env
 var is unset.
 """
+
 from __future__ import annotations
 
 import json
@@ -15,7 +16,7 @@ import time
 import urllib.request
 from typing import Any
 
-_URL     = os.environ.get("MCP_AUDIT_WEBHOOK_URL", "")
+_URL = os.environ.get("MCP_AUDIT_WEBHOOK_URL", "")
 _VARIANT = os.environ.get("FSS_VARIANT", "unknown")
 _Q: queue.Queue[dict[str, Any]] = queue.Queue(maxsize=2000)
 

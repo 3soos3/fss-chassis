@@ -180,9 +180,7 @@ class TestVerifyFITHappyPath:
 
 
 class TestVerifyFITStepFailures:
-    async def test_step0_pyjwt_not_installed(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    async def test_step0_pyjwt_not_installed(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setitem(sys.modules, "jwt", None)  # type: ignore[arg-type]
         from fss_core.fit import verify_fit
 
@@ -208,9 +206,7 @@ class TestVerifyFITStepFailures:
             await verify_fit("t", "tool", None, None, "agent_supervised", "")
         assert exc_info.value.step == 1
 
-    async def test_step2_cannot_decode_payload(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    async def test_step2_cannot_decode_payload(self, monkeypatch: pytest.MonkeyPatch) -> None:
         m = _make_jwt_mock(unverified_exc=ValueError("bad payload"))
         monkeypatch.setitem(sys.modules, "jwt", m)
         from fss_core.fit import verify_fit
@@ -229,9 +225,7 @@ class TestVerifyFITStepFailures:
             await verify_fit("t", "tool", None, None, "agent_supervised", "")
         assert exc_info.value.step == 2
 
-    async def test_step2_untrusted_issuer(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    async def test_step2_untrusted_issuer(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("FSS_FIT_TRUSTED_ISSUERS", "https://other.example.com")
         m = _make_jwt_mock()
         monkeypatch.setitem(sys.modules, "jwt", m)
@@ -241,9 +235,7 @@ class TestVerifyFITStepFailures:
             await verify_fit("t", "tool", None, None, "agent_supervised", "")
         assert exc_info.value.step == 2
 
-    async def test_step3_key_resolution_failed(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    async def test_step3_key_resolution_failed(self, monkeypatch: pytest.MonkeyPatch) -> None:
         m = _make_jwt_mock(key_exc=Exception("network error"))
         monkeypatch.setitem(sys.modules, "jwt", m)
         from fss_core.fit import verify_fit
@@ -263,12 +255,8 @@ class TestVerifyFITStepFailures:
             await verify_fit("t", "tool", None, None, "agent_supervised", "")
         assert exc_info.value.step == 4
 
-    async def test_step5_invalid_audience(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        m = _make_jwt_mock(
-            verified_exc=_FakeInvalidAudienceError("wrong audience")
-        )
+    async def test_step5_invalid_audience(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        m = _make_jwt_mock(verified_exc=_FakeInvalidAudienceError("wrong audience"))
         monkeypatch.setitem(sys.modules, "jwt", m)
         from fss_core.fit import verify_fit
 
@@ -286,9 +274,7 @@ class TestVerifyFITStepFailures:
         assert exc_info.value.step == 7
 
     async def test_step7_not_yet_valid(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        m = _make_jwt_mock(
-            verified_exc=_FakeImmatureSignatureError("not yet valid")
-        )
+        m = _make_jwt_mock(verified_exc=_FakeImmatureSignatureError("not yet valid"))
         monkeypatch.setitem(sys.modules, "jwt", m)
         from fss_core.fit import verify_fit
 
@@ -296,23 +282,17 @@ class TestVerifyFITStepFailures:
             await verify_fit("t", "tool", None, None, "agent_supervised", "")
         assert exc_info.value.step == 7
 
-    async def test_step8_investigation_id_mismatch(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    async def test_step8_investigation_id_mismatch(self, monkeypatch: pytest.MonkeyPatch) -> None:
         payload = {**_default_payload(), "investigation_id": "inv-999"}
         m = _make_jwt_mock(unverified_payload=payload, verified_payload=payload)
         monkeypatch.setitem(sys.modules, "jwt", m)
         from fss_core.fit import verify_fit
 
         with pytest.raises(FITVerificationError) as exc_info:
-            await verify_fit(
-                "t", "tool", "inv-001", None, "agent_supervised", ""
-            )
+            await verify_fit("t", "tool", "inv-001", None, "agent_supervised", "")
         assert exc_info.value.step == 8
 
-    async def test_step9_tool_not_authorized(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    async def test_step9_tool_not_authorized(self, monkeypatch: pytest.MonkeyPatch) -> None:
         payload = {**_default_payload(), "authorized_tools": ["allowed_tool"]}
         m = _make_jwt_mock(unverified_payload=payload, verified_payload=payload)
         monkeypatch.setitem(sys.modules, "jwt", m)
@@ -322,22 +302,16 @@ class TestVerifyFITStepFailures:
             await verify_fit("t", "other_tool", None, None, "agent_supervised", "")
         assert exc_info.value.step == 9
 
-    async def test_step9_wildcard_pattern_matches(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    async def test_step9_wildcard_pattern_matches(self, monkeypatch: pytest.MonkeyPatch) -> None:
         payload = {**_default_payload(), "authorized_tools": ["solveit_.*"]}
         m = _make_jwt_mock(unverified_payload=payload, verified_payload=payload)
         monkeypatch.setitem(sys.modules, "jwt", m)
         from fss_core.fit import verify_fit
 
-        claims = await verify_fit(
-            "t", "solveit_search", None, None, "agent_supervised", ""
-        )
+        claims = await verify_fit("t", "solveit_search", None, None, "agent_supervised", "")
         assert claims.authorized_tools == ["solveit_.*"]
 
-    async def test_step10_analyst_mismatch(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    async def test_step10_analyst_mismatch(self, monkeypatch: pytest.MonkeyPatch) -> None:
         payload = {**_default_payload(), "authorized_analyst": "alice"}
         m = _make_jwt_mock(unverified_payload=payload, verified_payload=payload)
         monkeypatch.setitem(sys.modules, "jwt", m)
@@ -347,9 +321,7 @@ class TestVerifyFITStepFailures:
             await verify_fit("t", "tool", None, "bob", "agent_supervised", "")
         assert exc_info.value.step == 10
 
-    async def test_step10_analyst_match_passes(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    async def test_step10_analyst_match_passes(self, monkeypatch: pytest.MonkeyPatch) -> None:
         payload = {**_default_payload(), "authorized_analyst": "alice"}
         m = _make_jwt_mock(unverified_payload=payload, verified_payload=payload)
         monkeypatch.setitem(sys.modules, "jwt", m)
@@ -373,9 +345,7 @@ class TestVerifyFITStepFailures:
             await verify_fit("t", "tool", None, None, "agent_autonomous", "")
         assert exc_info.value.step == 11
 
-    async def test_step11_permitted_type_passes(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    async def test_step11_permitted_type_passes(self, monkeypatch: pytest.MonkeyPatch) -> None:
         payload = {
             **_default_payload(),
             "invocation_types_permitted": ["agent_supervised"],
@@ -433,9 +403,7 @@ class TestIsTrustedIssuer:
         assert _is_trusted_issuer("https://a.com") is True
         assert _is_trusted_issuer("https://b.com") is True
 
-    def test_issuer_not_in_list_rejected(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_issuer_not_in_list_rejected(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("FSS_FIT_TRUSTED_ISSUERS", "https://a.com")
         from fss_core.fit import _is_trusted_issuer
 
@@ -450,12 +418,8 @@ class TestJwksUrlForIssuer:
         url = _jwks_url_for_issuer("https://issuer.example.com")
         assert url == "https://issuer.example.com/.well-known/fss-jwks.json"
 
-    def test_env_override_takes_precedence(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        monkeypatch.setenv(
-            "FSS_FIT_ISSUER_JWKS_URL", "https://custom.example.com/jwks"
-        )
+    def test_env_override_takes_precedence(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("FSS_FIT_ISSUER_JWKS_URL", "https://custom.example.com/jwks")
         from fss_core.fit import _jwks_url_for_issuer
 
         url = _jwks_url_for_issuer("https://issuer.example.com")

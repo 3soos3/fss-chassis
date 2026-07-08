@@ -191,9 +191,7 @@ class TestEvidentiaryStatus:
         record = build_provenance_record("tool", "1.0.0")
         assert record["evidentiary_status"] == "non-evidentiary"
 
-    def test_evidentiary_false_without_fss_metadata(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_evidentiary_false_without_fss_metadata(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("FSS_METADATA", "false")
         _set_context(result_status="success", client_identity="user@example.org")
         record = build_provenance_record("tool", "1.0.0")

@@ -151,6 +151,7 @@ class MiddlewarePipeline:
                 raise AuthError(f"Authorization failed: lacks required scopes for '{name}'")
             if result.identity.id != "local":
                 from fss_core.fss_context import fss_client_identity
+
                 fss_client_identity.set(result.identity.id)
         except AuthError as exc:
             logger.warning("Auth check failed for '%s'", name)
@@ -198,6 +199,7 @@ class MiddlewarePipeline:
 
         # Validate the FIT
         from fss_core.fit import FITVerificationError, verify_fit
+
         client_identity = fss_client_identity.get()
         invocation_type = fss_invocation_type.get() or "agent_supervised"
         server_identity = os.environ.get("FSS_SERVER_IDENTITY", "")
@@ -215,6 +217,7 @@ class MiddlewarePipeline:
             logger.warning("FIT verification failed at step %d: %s", exc.step, exc)
             try:
                 from fss_mcp.logging_config import log_security_event
+
                 log_security_event("fit_verification_failed", error_detail=str(exc))
             except Exception:
                 pass

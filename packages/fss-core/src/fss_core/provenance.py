@@ -45,6 +45,7 @@ _VALID_INVOCATION_TYPES = {"human_direct", "agent_supervised", "agent_autonomous
 def _build_assessed_under(fss_binding_version: str | None) -> str:
     """Construct the assessed_under identifier from the fss-core package version and FSS_LEVEL."""
     import fss_core
+
     spec = ".".join(fss_core.__version__.split(".")[:2])
     level = os.environ.get("FSS_LEVEL", "1")
     if fss_binding_version:
@@ -95,11 +96,7 @@ def build_provenance_record(
     client_identity = fss_client_identity.get()
     result_status = fss_result_status.get() or "error"
 
-    evidentiary = (
-        "evidentiary"
-        if (fss_metadata and client_identity)
-        else "non-evidentiary"
-    )
+    evidentiary = "evidentiary" if (fss_metadata and client_identity) else "non-evidentiary"
 
     analyst_identity_binding = "federated" if client_identity else "asserted"
 

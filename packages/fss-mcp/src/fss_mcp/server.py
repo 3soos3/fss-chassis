@@ -527,6 +527,7 @@ class ChassisServer:
     ) -> types.CallToolResult:
         """Inner dispatch — FSS lifecycle, middleware, handler invocation."""
         import time as _time
+
         _t0 = _time.monotonic()
 
         # ── 1. Initialise FSS transaction context ─────────────────────
@@ -587,21 +588,24 @@ class ChassisServer:
                 result_data["_provenance"] = provenance
             try:
                 from fss_mcp.utils.observer import emit as _obs
-                _obs("tool_call",
-                     transaction_id=transaction_id,
-                     tool_name=tool_name,
-                     tool_version=self._tools.get(tool_name, {}).get("tool_version", "0.0.0"),
-                     duration_ms=round((_time.monotonic() - _t0) * 1000, 1),
-                     success=False,
-                     error_code=code,
-                     error_message=message,
-                     parameters_cai=fss_parameters_cai.get(),
-                     result_cai=None,
-                     investigation_id=fss_investigation_id.get(),
-                     client_identity=fss_client_identity.get(),
-                     fit_jti=None,
-                     arguments=arguments,
-                     result_text="")
+
+                _obs(
+                    "tool_call",
+                    transaction_id=transaction_id,
+                    tool_name=tool_name,
+                    tool_version=self._tools.get(tool_name, {}).get("tool_version", "0.0.0"),
+                    duration_ms=round((_time.monotonic() - _t0) * 1000, 1),
+                    success=False,
+                    error_code=code,
+                    error_message=message,
+                    parameters_cai=fss_parameters_cai.get(),
+                    result_cai=None,
+                    investigation_id=fss_investigation_id.get(),
+                    client_identity=fss_client_identity.get(),
+                    fit_jti=None,
+                    arguments=arguments,
+                    result_text="",
+                )
             except Exception:
                 pass
             return types.CallToolResult.model_validate(result_data)
@@ -649,8 +653,10 @@ class ChassisServer:
                 if isinstance(_fss_block, dict):
                     _allowed_fss = {
                         "fit",
-                        "investigation_id", "analyst_identity",
-                        "llm_model", "llm_provider",
+                        "investigation_id",
+                        "analyst_identity",
+                        "llm_model",
+                        "llm_provider",
                     }
                     for _k, _v in _fss_block.items():
                         if _k not in _allowed_fss:
@@ -679,8 +685,10 @@ class ChassisServer:
             raw_meta = arguments.pop("_meta", {}) or {}
             if isinstance(raw_meta, dict):
                 _allowed_args_meta = {
-                    "investigation_id", "analyst_identity",
-                    "llm_model", "llm_provider",
+                    "investigation_id",
+                    "analyst_identity",
+                    "llm_model",
+                    "llm_provider",
                 }
                 for _k, _v in raw_meta.items():
                     if _k == "invocation_type":
@@ -860,29 +868,34 @@ class ChassisServer:
 
         try:
             from fss_mcp.utils.observer import emit as _obs
-            _obs("tool_call",
-                 transaction_id=transaction_id,
-                 tool_name=tool_name,
-                 tool_version=tool_version,
-                 duration_ms=round((_time.monotonic() - _t0) * 1000, 1),
-                 success=True,
-                 error_code="",
-                 error_message="",
-                 parameters_cai=provenance.get("parameters_cai"),
-                 result_cai=provenance.get("result_cai"),
-                 investigation_id=provenance.get("investigation_id"),
-                 client_identity=provenance.get("client_identity"),
-                 fit_jti=provenance.get("fit_jti"),
-                 arguments=sanitized_args,
-                 result_text=response_text[:2000])
+
+            _obs(
+                "tool_call",
+                transaction_id=transaction_id,
+                tool_name=tool_name,
+                tool_version=tool_version,
+                duration_ms=round((_time.monotonic() - _t0) * 1000, 1),
+                success=True,
+                error_code="",
+                error_message="",
+                parameters_cai=provenance.get("parameters_cai"),
+                result_cai=provenance.get("result_cai"),
+                investigation_id=provenance.get("investigation_id"),
+                client_identity=provenance.get("client_identity"),
+                fit_jti=provenance.get("fit_jti"),
+                arguments=sanitized_args,
+                result_text=response_text[:2000],
+            )
         except Exception:
             pass
 
-        return types.CallToolResult.model_validate({
-            "content": [{"type": "text", "text": response_text}],
-            "isError": False,
-            "_provenance": provenance,
-        })
+        return types.CallToolResult.model_validate(
+            {
+                "content": [{"type": "text", "text": response_text}],
+                "isError": False,
+                "_provenance": provenance,
+            }
+        )
 
     def _make_middleware_mcp_error(self, middleware_result: Any) -> Exception:
         """Build an McpError from a failed MiddlewareResult, respecting detailed_errors.
