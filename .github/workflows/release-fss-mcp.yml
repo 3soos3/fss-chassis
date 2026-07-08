@@ -35,7 +35,7 @@ jobs:
         run: uv build packages/fss-mcp --out-dir dist/
 
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@e8998f949152b193a99a28c4f5f36e51d9d2df2c # v2.4.0
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
         with:
           subject-path: dist/*
 
