@@ -6,7 +6,22 @@ build-backend = "hatchling.build"
 name = "fss-mcp"
 version = "0.3.2"
 description = "FSS-compliant MCP server chassis"
+readme = "README.md"
+license = "MIT"
 requires-python = ">=3.11"
+authors = [{name = "3soos3", email = "fss-chassis@3soos3.online"}]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
 dependencies = [
     "fss-core>=0.3",
     "mcp>=1.2.0,<2.0",
@@ -21,8 +36,8 @@ otel = ["opentelemetry-api>=1.20.0", "opentelemetry-sdk>=1.20.0",
 [project.scripts]
 fss-mcp = "fss_mcp.__main__:main"
 
-[tool.uv.sources]
-fss-core = { workspace = true }
+[project.urls]
+Repository = "https://github.com/3soos3/fss-chassis"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/fss_mcp"]

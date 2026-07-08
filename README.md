@@ -4,7 +4,7 @@ A Python monorepo providing two packages that implement the Forensic Software St
 
 | Package | PyPI | Implements | MCP dependency |
 |---|---|---|---|
-| `fss-core` | `pip install fss-core` | FSS-0009 — protocol primitives | None |
+| `fss-core` | `pip install fss-core` | FSS-0004/FSS-0005 — protocol primitives | None |
 | `fss-mcp` | `pip install fss-mcp` | FSS-0010 — MCP server chassis | `mcp>=1.2.0` |
 
 `fss-core` is usable by any FSS-compliant service regardless of transport. `fss-mcp` is the MCP-specific layer built on top of it.
