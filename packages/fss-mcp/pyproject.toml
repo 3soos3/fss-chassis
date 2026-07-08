@@ -39,5 +39,8 @@ fss-mcp = "fss_mcp.__main__:main"
 [project.urls]
 Repository = "https://github.com/3soos3/fss-chassis"
 
+[tool.uv.sources]
+fss-core = { workspace = true }
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/fss_mcp"]

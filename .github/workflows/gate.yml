@@ -86,8 +86,5 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
-      - name: pip-audit fss-core
-        run: uv run pip-audit packages/fss-core
-
-      - name: pip-audit fss-mcp
-        run: uv run pip-audit packages/fss-mcp
+      - name: pip-audit
+        run: uv run pip-audit --skip-editable

@@ -34,9 +34,9 @@ jobs:
         id: audit
         run: |
           set +e
-          uv run pip-audit packages/fss-core packages/fss-mcp --format json --output pip-audit.json
+          uv run pip-audit --skip-editable --format json --output pip-audit.json
           AUDIT_EXIT=$?
-          uv run pip-audit packages/fss-core packages/fss-mcp --format columns || true
+          uv run pip-audit --skip-editable --format columns || true
           echo "exit_code=${AUDIT_EXIT}" >> $GITHUB_OUTPUT
           set -e
 
