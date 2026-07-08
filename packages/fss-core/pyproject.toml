@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fss-core"
-version = "0.3.2"
+version = "0.3.3"
 description = "FSS protocol primitives: provenance, integrity, auth, FIT"
 readme = "README.md"
 license = "MIT"
