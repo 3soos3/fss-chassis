@@ -1,5 +1,7 @@
 """FSS Core — FSS protocol primitives: provenance, integrity, auth, FIT."""
 
+from importlib.metadata import PackageNotFoundError, version
+
 from fss_core.auth import (
     ApiKeyProvider,
     AuthIdentity,
@@ -45,7 +47,6 @@ from fss_core.integrity import (
 )
 from fss_core.provenance import build_provenance_record
 
-from importlib.metadata import PackageNotFoundError, version
 try:
     __version__ = version("fss-core")
 except PackageNotFoundError:

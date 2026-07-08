@@ -12,12 +12,11 @@ import uuid
 from collections.abc import Callable, Coroutine
 from typing import TYPE_CHECKING, Any
 
-import fss_mcp
-
 from mcp import types
 from mcp.server.lowlevel.server import Server as SDKServer
 from mcp.server.lowlevel.server import request_ctx
 
+import fss_mcp
 from fss_core.errors import (
     FSS_AUTH_DENIED,
     FSS_AUTH_REQUIRED,
@@ -567,7 +566,9 @@ class ChassisServer:
                     tool_version=self._tools.get(tool_name, {}).get("tool_version", "0.0.0"),
                     kb_version_id=getattr(self, "_kb_version_id", None),
                     kb_version=getattr(self, "_kb_version", None),
-                    server_version=getattr(self, "_server_version", None) or self._config.server.version,
+                    server_version=(
+                        getattr(self, "_server_version", None) or self._config.server.version
+                    ),
                     fss_binding_version=fss_mcp.__version__,
                 )
                 # Merge error fields into provenance so the client can read them

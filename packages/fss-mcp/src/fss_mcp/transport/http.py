@@ -361,8 +361,6 @@ class HTTPTransport(TransportBase):
             if isinstance(scope, dict):
                 from fss_core.fss_context import (
                     fss_auth_token,
-                    fss_fit_token,
-                    fss_investigation_id,
                     fss_request_timestamp,
                     fss_session_id,
                 )
