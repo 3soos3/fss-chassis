@@ -1,5 +1,10 @@
 # fss-mcp
 
+[![PyPI](https://img.shields.io/pypi/v/fss-mcp)](https://pypi.org/project/fss-mcp/)
+[![Python](https://img.shields.io/badge/python-3.11_%7C_3.12_%7C_3.13-blue)](https://pypi.org/project/fss-mcp/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/3soos3/fss-chassis/badge)](https://securityscorecards.dev/viewer/?uri=github.com/3soos3/fss-chassis)
+
 FSS-compliant MCP server chassis. Build forensic-grade MCP servers that satisfy the [Forensic Software Standards (FSS)](https://fss.3soos3.online) conformance levels L1–L5.
 
 ## What it provides
@@ -34,3 +39,5 @@ pip install "fss-mcp[http,auth,otel]"
 
 - Repository: <https://github.com/3soos3/fss-chassis>
 - FSS standard: <https://fss.3soos3.online>
+- OpenSSF Scorecard: <https://securityscorecards.dev/viewer/?uri=github.com/3soos3/fss-chassis>
+- Security advisories: <https://github.com/3soos3/fss-chassis/security/advisories>

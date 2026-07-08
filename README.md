@@ -1,5 +1,10 @@
 # fss-chassis
 
+[![Gate](https://github.com/3soos3/fss-chassis/actions/workflows/gate.yml/badge.svg)](https://github.com/3soos3/fss-chassis/actions/workflows/gate.yml)
+[![CodeQL](https://github.com/3soos3/fss-chassis/actions/workflows/codeql.yml/badge.svg)](https://github.com/3soos3/fss-chassis/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/3soos3/fss-chassis/badge)](https://securityscorecards.dev/viewer/?uri=github.com/3soos3/fss-chassis)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 A Python monorepo providing two packages that implement the Forensic Software Standard (FSS) for MCP servers.
 
 | Package | PyPI | Implements | MCP dependency |
@@ -138,6 +143,21 @@ I/O limits → Auth → Rate limit → Sanitise → Validate
 | `strict` | 60 rpm global / 30 rpm per tool | 1 MB req / 5 MB resp | Path traversal, shell metacharacters, control chars |
 | `moderate` | 120 rpm global / 60 rpm per tool | 5 MB req / 20 MB resp | Path traversal, control chars |
 | `permissive` | Disabled | 50 MB req/resp | Null bytes only |
+
+---
+
+## Security
+
+Vulnerability reports should be submitted via [GitHub Security Advisories](https://github.com/3soos3/fss-chassis/security/advisories/new) — do not use public issues for security matters.
+
+Automated security controls on this repository:
+
+| Control | Tool | Cadence |
+|---|---|---|
+| Dependency vulnerability scan | [pip-audit](https://github.com/pypa/pip-audit) | Every PR + weekly |
+| Static analysis | [CodeQL](https://github.com/3soos3/fss-chassis/security/code-scanning) | Every PR + weekly |
+| Supply-chain scorecard | [OpenSSF Scorecard](https://securityscorecards.dev/viewer/?uri=github.com/3soos3/fss-chassis) | Every push to main |
+| Dependency licence review | [dependency-review-action](https://github.com/3soos3/fss-chassis/actions/workflows/dependency-review.yml) | Every PR |
 
 ---
 

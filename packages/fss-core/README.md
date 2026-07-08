@@ -1,5 +1,10 @@
 # fss-core
 
+[![PyPI](https://img.shields.io/pypi/v/fss-core)](https://pypi.org/project/fss-core/)
+[![Python](https://img.shields.io/badge/python-3.11_%7C_3.12_%7C_3.13-blue)](https://pypi.org/project/fss-core/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/3soos3/fss-chassis/badge)](https://securityscorecards.dev/viewer/?uri=github.com/3soos3/fss-chassis)
+
 Protocol primitives for the [Forensic Software Standards (FSS)](https://fss.3soos3.online) series. Used by FSS-compliant forensic tool providers to produce auditable, signed provenance records on every tool invocation.
 
 ## What it provides
@@ -22,3 +27,5 @@ pip install "fss-core[auth]"
 
 - Repository: <https://github.com/3soos3/fss-chassis>
 - FSS standard: <https://fss.3soos3.online>
+- OpenSSF Scorecard: <https://securityscorecards.dev/viewer/?uri=github.com/3soos3/fss-chassis>
+- Security advisories: <https://github.com/3soos3/fss-chassis/security/advisories>
