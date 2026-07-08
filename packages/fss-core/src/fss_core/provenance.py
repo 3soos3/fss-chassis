@@ -43,12 +43,13 @@ _VALID_INVOCATION_TYPES = {"human_direct", "agent_supervised", "agent_autonomous
 
 
 def _build_assessed_under(fss_binding_version: str | None) -> str:
-    """Construct the assessed_under identifier from package versions and FSS_LEVEL."""
+    """Construct the assessed_under identifier from the fss-core package version and FSS_LEVEL."""
     import fss_core
-    spec = fss_core.__version__
+    spec = ".".join(fss_core.__version__.split(".")[:2])
     level = os.environ.get("FSS_LEVEL", "1")
     if fss_binding_version:
-        return f"FSS-0010v{fss_binding_version}@FSS-0009v{spec}L{level}"
+        binding = ".".join(fss_binding_version.split(".")[:2])
+        return f"FSS-0010v{binding}@FSS-0009v{spec}L{level}"
     return f"FSS-0009v{spec}L{level}"
 
 
@@ -130,10 +131,7 @@ def build_provenance_record(
         "client_identity": client_identity,
         "server_version": _server_version,
         "image_digest": os.environ.get("IMAGE_DIGEST") or None,
-        "assessed_under": (
-            os.environ.get("FSS_ASSESSED_UNDER")
-            or _build_assessed_under(fss_binding_version)
-        ),
+        "assessed_under": _build_assessed_under(fss_binding_version),
         "fit_jti": fss_fit_jti.get(),
         "fit_issuer": fss_fit_issuer.get(),
         "fit_valid_until": fss_fit_valid_until.get(),

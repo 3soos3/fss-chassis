@@ -638,28 +638,27 @@ class ChassisServer:
                     from fss_core.fss_context import fss_request_timestamp
 
                     fss_request_timestamp.set(ts)
-                inv_id = http_req.headers.get("x-investigation-id", "")
-                if inv_id:
-                    fss_investigation_id.set(inv_id)
-                fit_tok = http_req.headers.get("x-fit-token", "")
-                if fit_tok:
-                    fss_fit_token.set(fit_tok)
-            # FSS investigation context from params._meta._fss
+            # FSS investigation context from params._meta._fss (FSS-0010 §3.1).
+            # This is the canonical source; headers are no longer read for fit
+            # or investigation_id.
             if sdk_ctx.meta is not None:
                 _fss_block: dict[str, Any] = {}
                 if sdk_ctx.meta.model_extra:
                     _fss_block = sdk_ctx.meta.model_extra.get("_fss") or {}
                 if isinstance(_fss_block, dict):
                     _allowed_fss = {
+                        "fit",
                         "investigation_id", "analyst_identity",
                         "llm_model", "llm_provider",
                     }
                     for _k, _v in _fss_block.items():
                         if _k not in _allowed_fss:
                             continue
-                        if not isinstance(_v, str) or len(_v) > 256:
+                        if not isinstance(_v, str) or len(_v) > 4096:
                             continue
-                        if _k == "investigation_id":
+                        if _k == "fit":
+                            fss_fit_token.set(_v)
+                        elif _k == "investigation_id":
                             fss_investigation_id.set(_v)
                         elif _k == "analyst_identity":
                             fss_analyst_identity.set(_v)

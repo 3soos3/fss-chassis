@@ -303,12 +303,12 @@ class HTTPTransport(TransportBase):
                 )
                 key_type = "provisioned" if key_path else "ephemeral"
 
-            _conf_level = os.environ.get("FSS_CONFORMANCE_LEVEL", "1")
-            _spec_ver = os.environ.get("FSS_SPEC_VERSION", "1.0")
-            _assessed_under = (
-                os.environ.get("FSS_ASSESSED_UNDER")
-                or f"FSS-0009v{_spec_ver}L{_conf_level}"
-            )
+            _conf_level = os.environ.get("FSS_LEVEL", "1")
+            import fss_core as _fss_core
+            import fss_mcp as _fss_mcp
+            _spec_ver = ".".join(_fss_core.__version__.split(".")[:2])
+            _binding_ver = ".".join(_fss_mcp.__version__.split(".")[:2])
+            _assessed_under = f"FSS-0010v{_binding_ver}@FSS-0009v{_spec_ver}L{_conf_level}"
             _fit_issuers_env = os.environ.get("FSS_FIT_TRUSTED_ISSUERS", "")
             record: dict = {
                 "fss_schema": "fss-deployment-v1",
@@ -321,7 +321,11 @@ class HTTPTransport(TransportBase):
                 "server_version": server_version,
                 "tls_termination": "deployment_layer",
                 "tls_minimum_version": "1.3",
-                "authentication_mode": "none",
+                "authentication_mode": {
+                    "token": "bearer_token",
+                    "apikey": "api_key",
+                    "oauth": "oauth_jwt",
+                }.get(os.environ.get("MCP_AUTH_PROVIDER", "none"), "none"),
                 "replay_prevention": "timestamp",
                 "rate_limiting": True,
                 "signing_key_kid": key_kid,
@@ -376,13 +380,9 @@ class HTTPTransport(TransportBase):
                     token = auth_header[7:].strip() if has_bearer else auth_header.strip()
                     fss_auth_token.set(token)
 
-                fit_token = headers_dict.get("x-fit-token", "")
-                if fit_token:
-                    fss_fit_token.set(fit_token)
-
-                investigation_id = headers_dict.get("x-investigation-id", "")
-                if investigation_id:
-                    fss_investigation_id.set(investigation_id)
+                # FSS-0010 §3.1: fit and investigation_id travel in _meta._fss
+                # (JSON-RPC body), not in HTTP headers. Headers are no longer read
+                # for these fields; see server.py §3a for body extraction.
 
                 session_id = headers_dict.get("mcp-session-id", "")
                 if not session_id:
@@ -395,8 +395,21 @@ class HTTPTransport(TransportBase):
 
                 scope.setdefault("state", {})  # type: ignore[union-attr]
                 scope["state"]["request_timestamp"] = request_timestamp  # type: ignore[index]
-                scope["state"]["fit_token"] = fit_token  # type: ignore[index]
-                scope["state"]["investigation_id"] = investigation_id  # type: ignore[index]
+
+                # Wrap send to inject Mcp-Transaction-Id on the response start
+                # (FSS-0010 §4). The transaction_id is set in server.py before
+                # any async work, so it is available when response.start fires.
+                async def _send_with_txn_header(event: dict) -> None:
+                    if event.get("type") == "http.response.start":
+                        from fss_core.fss_context import fss_transaction_id as _ftxn
+                        txn = _ftxn.get()
+                        if txn:
+                            hdrs = list(event.get("headers", []))
+                            hdrs.append(
+                                (b"mcp-transaction-id", txn.encode())
+                            )
+                            event = {**event, "headers": hdrs}
+                    await send(event)
 
                 # W3C trace context propagation — attach incoming traceparent/tracestate
                 # so spans created during this request become children of the caller's trace.
@@ -408,12 +421,12 @@ class HTTPTransport(TransportBase):
                     _ctx = _propagate.extract(headers_dict)
                     _token = _otel_ctx.attach(_ctx)
                     try:
-                        await session_manager.handle_request(scope, receive, send)
+                        await session_manager.handle_request(scope, receive, _send_with_txn_header)
                     finally:
                         _otel_ctx.detach(_token)
                     return
 
-            await session_manager.handle_request(scope, receive, send)
+            await session_manager.handle_request(scope, receive, _send_with_txn_header)
 
         from starlette.middleware.base import BaseHTTPMiddleware
         from starlette.responses import Response as StarletteResponse
