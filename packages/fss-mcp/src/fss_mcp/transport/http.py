@@ -255,6 +255,7 @@ class HTTPTransport(TransportBase):
             Lists the active Ed25519 public key(s) with kid, x, and revocation
             fields. The document is served for the lifetime of the server so
             signed provenance records remain verifiable after container restart.
+            Returns 404 when FSS_PROVENANCE=false (non-conformant mode).
 
             Args:
                 request: The incoming request.
@@ -262,6 +263,8 @@ class HTTPTransport(TransportBase):
             Returns:
                 JSON response with JWKS document.
             """
+            if os.environ.get("FSS_PROVENANCE", "true").lower() == "false":
+                return JSONResponse({"error": "FSS provenance disabled"}, status_code=404)
             try:
                 from fss_core.integrity import build_jwks, load_signing_key
 
@@ -276,12 +279,17 @@ class HTTPTransport(TransportBase):
         async def fss_deployment_record(request: Request) -> JSONResponse:
             """Serve the FSS deployment record (FSS-0009 §4).
 
+            Returns 404 when FSS_PROVENANCE=false (non-conformant mode).
+
             Args:
                 request: The incoming request.
 
             Returns:
                 JSON response with deployment record.
             """
+            if os.environ.get("FSS_PROVENANCE", "true").lower() == "false":
+                return JSONResponse({"error": "FSS provenance disabled"}, status_code=404)
+
             from datetime import UTC, datetime
 
             try:

@@ -73,7 +73,7 @@ def build_provenance_record(
     kb_version: str | None = None,
     server_version: str | None = None,
     fss_binding_version: str | None = None,
-) -> dict[str, Any]:
+) -> dict[str, Any] | None:
     """Build a complete FSS-0004 §3.1 provenance record.
 
     Reads all fss_* context variables set during dispatch and assembles
@@ -92,6 +92,9 @@ def build_provenance_record(
     Returns:
         Dict with all required FSS provenance fields.
     """
+    if os.environ.get("FSS_PROVENANCE", "true").lower() == "false":
+        return None
+
     fss_metadata = os.environ.get("FSS_METADATA", "false").lower() == "true"
     client_identity = fss_client_identity.get()
     result_status = fss_result_status.get() or "error"

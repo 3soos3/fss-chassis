@@ -837,7 +837,11 @@ class ChassisServer:
                 from fss_mcp.utils.metrics import get_metrics as _gm
 
                 _gm().record_response_size(tool_name, len(response_text.encode()))
-                _evidentiary = provenance.get("evidentiary_status") == "evidentiary"
+                _evidentiary = (
+                    provenance.get("evidentiary_status") == "evidentiary"
+                    if provenance
+                    else False
+                )
                 _gm().record_evidentiary(tool_name, evidentiary=_evidentiary)
             except Exception:
                 pass
@@ -878,24 +882,24 @@ class ChassisServer:
                 success=True,
                 error_code="",
                 error_message="",
-                parameters_cai=provenance.get("parameters_cai"),
-                result_cai=provenance.get("result_cai"),
-                investigation_id=provenance.get("investigation_id"),
-                client_identity=provenance.get("client_identity"),
-                fit_jti=provenance.get("fit_jti"),
+                parameters_cai=provenance.get("parameters_cai") if provenance else None,
+                result_cai=provenance.get("result_cai") if provenance else None,
+                investigation_id=provenance.get("investigation_id") if provenance else None,
+                client_identity=provenance.get("client_identity") if provenance else None,
+                fit_jti=provenance.get("fit_jti") if provenance else None,
                 arguments=sanitized_args,
                 result_text=response_text[:2000],
             )
         except Exception:
             pass
 
-        return types.CallToolResult.model_validate(
-            {
-                "content": [{"type": "text", "text": response_text}],
-                "isError": False,
-                "_provenance": provenance,
-            }
-        )
+        result: dict[str, Any] = {
+            "content": [{"type": "text", "text": response_text}],
+            "isError": False,
+        }
+        if provenance is not None:
+            result["_provenance"] = provenance
+        return types.CallToolResult.model_validate(result)
 
     def _make_middleware_mcp_error(self, middleware_result: Any) -> Exception:
         """Build an McpError from a failed MiddlewareResult, respecting detailed_errors.
