@@ -335,6 +335,9 @@ def _apply_env_overrides(raw: dict[str, Any]) -> dict[str, Any]:
     if val := os.environ.get("MCP_AUTH_MODE"):
         result.setdefault("security", {}).setdefault("auth", {})["mode"] = val
 
+    if val := os.environ.get("MCP_AUTH_OAUTH_JWKS_URL"):
+        result.setdefault("security", {}).setdefault("auth", {})["oauth_jwks_url"] = val
+
     if val := os.environ.get("MCP_REPLAY_WINDOW_SECONDS"):
         try:
             result.setdefault("security", {})["replay_window_seconds"] = int(val)
